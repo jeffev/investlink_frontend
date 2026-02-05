@@ -1,5 +1,5 @@
 # Usa a imagem oficial do Node.js para construir os arquivos estáticos
-FROM node:14 AS build
+FROM node:18 AS build
 
 # Define o diretório de trabalho no contêiner
 WORKDIR /app
