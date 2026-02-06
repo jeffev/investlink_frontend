@@ -33,7 +33,7 @@ describe('BarraNavegacao', () => {
         <BarraNavegacao check={false} change={() => {}} />
       </MemoryRouter>
     );
-    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /login/i })).toBeInTheDocument();
   });
 
   it('mostra botão Logout quando usuário está logado', () => {
@@ -43,7 +43,8 @@ describe('BarraNavegacao', () => {
         <BarraNavegacao check={false} change={() => {}} />
       </MemoryRouter>
     );
-    expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument();
+    const logoutButton = screen.getByRole('button', { name: /logout/i });
+    expect(logoutButton).toBeInTheDocument();
   });
 
   it('chama logout e navigate ao clicar em Logout', async () => {
@@ -65,8 +66,8 @@ describe('BarraNavegacao', () => {
         <BarraNavegacao check={false} change={change} />
       </MemoryRouter>
     );
-    const switchLabel = screen.getByText(/dark mode/i);
-    await userEvent.click(switchLabel);
+    const switchInput = screen.getByRole('checkbox');
+    await userEvent.click(switchInput);
     expect(change).toHaveBeenCalled();
   });
 });
