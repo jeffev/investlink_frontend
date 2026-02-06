@@ -21,9 +21,14 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.23.0",
     "react-scripts": "^5.0.1",
-    "web-vitals": "^2.1.4"
-    ,
+    "web-vitals": "^2.1.4",
     "styled-components": "^6.0.0"
+  },
+  "devDependencies": {
+    "typescript": "4.9.5"
+  },
+  "overrides": {
+    "typescript": "4.9.5"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -32,17 +37,10 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "extends": ["react-app", "react-app/jest"]
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
+    "production": [">0.2%", "not dead", "not op_mini all"],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
