@@ -1,7 +1,7 @@
 import axios from "axios";
 import AuthService from "./auth.service";
 
-const API_URL = "http://investlink-backend-1:5000/v1/";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/v1/";
 
 class FiiService {
   constructor() {
@@ -31,7 +31,8 @@ class FiiService {
   }
 
   async getAllFIIs() {
-    return this.request("get", "fiis");
+    const response = await this.request("get", "fiis");
+    return response.data;
   }
 
   async addFavorite(fiiId) {

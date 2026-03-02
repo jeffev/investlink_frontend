@@ -11,6 +11,9 @@ RUN npm install
 # Copia o restante do código do frontend para o contêiner
 COPY . .
 
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
 # Compila a aplicação para produção
 RUN npm run build
 

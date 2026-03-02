@@ -1,7 +1,7 @@
 import axios from "axios";
 import UserLayoutService from "./userLayout.service";
 
-const API_URL = "http://investlink-backend-1:5000/v1/";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/v1/";
 
 class AuthService {
   async login(user_name, password) {
