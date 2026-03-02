@@ -124,7 +124,8 @@ class AuthService {
 
   isAdmin() {
     const user = JSON.parse(sessionStorage.getItem("user"));
-    return user && user.profile === "ADMIN";
+    if (!user) return false;
+    return user.profile === "ADMIN";
   }
 }
 
