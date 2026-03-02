@@ -5,8 +5,8 @@ FROM node:18 AS build
 WORKDIR /app
 
 # Copia o package.json e instala as dependências
-COPY package.json .
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 
 # Copia o restante do código do frontend para o contêiner
 COPY . .
