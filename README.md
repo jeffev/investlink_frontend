@@ -1,58 +1,94 @@
 # InvestLink Frontend
 
-Welcome to the frontend repository of InvestLink, a stock management application. This frontend is built using [React](https://reactjs.org/) and [Redux](https://redux.js.org/) for state management.
+Interface web do InvestLink para análise de ações do IBXX e Fundos de Investimento Imobiliário (FIIs).
 
-## Setup
+## Stack
 
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/jeffev/investlink_frontend
-   cd investlink-frontend
-   ```
+- React 18.3.1
+- Material-UI 5.15.16
+- Axios
+- React Router 6
+- JWT (sessão via `sessionStorage`)
 
-2. **Install dependencies:**
-   ```sh
-   npm install
-   ```
+## Execução local (sem Docker)
 
-3. **Run the development server:**
-   ```sh
-   npm start
-   ```
+```bash
+cd frontend
+npm install
+npm start
+```
 
-4. **Build the project for production:**
-   ```sh
-   npm run build
-   ```
+A aplicação sobe em `http://localhost:3000`.
 
-### Environment Variables
+Configure a variável de ambiente para apontar para o backend:
 
-The following environment variables are used in the project:
+```env
+# .env
+REACT_APP_API_URL=http://localhost:5000/v1/
+```
 
-- **REACT_APP_API_BASE_URL:** The base URL of the backend API.
+## Execução com Docker
 
-Create a `.env` file in the root of the project and add the following:
+Na raiz do monorepo:
 
-   ```
-   REACT_APP_API_BASE_URL=http://localhost:5000/api
-   ```
+```bash
+docker compose up --build frontend
+```
 
-### Folder Structure
+A aplicação é servida via Nginx na porta 3000.
 
-The project structure is as follows:
+## Build de produção
 
-- **`public/`:** Contains the public assets of the application.
-- **`src/`:** Contains the source code of the application.
-   - **`assets/`:** Contains static assets like images, fonts, etc.
-   - **`components/`:** Contains React components.
-   - **`pages/`:** Contains the main pages of the application.
-   - **`services/`:** Contains API service functions.
+```bash
+npm run build
+```
 
-## Features
+## Testes
 
-- **Dark and Light Theme:** Toggle between dark and light themes.
-- **Save Layout:** Allows users to save the layout of the stocks and FII lists.
-- **Filterable Lists:** Filter stocks and FIIs based on various criteria.
-- **Favorites:** Add stocks and FIIs to a favorites list, with options to set target and ceiling prices that change color based on current prices.
-- **Market Sentiment Analysis:** Planned feature to analyze market sentiment using machine learning on recent news.
-- **ML-based Price Prediction:** Planned feature to display if an stocks is cheap, expensive, or neutral based on a machine learning model.
+```bash
+npm test
+```
+
+Executa os testes com Jest + React Testing Library. Cobertura atual: 5 suites, 26 testes.
+
+## Páginas
+
+| Rota             | Página            | Acesso       |
+|------------------|-------------------|--------------|
+| `/login`         | Login             | Público      |
+| `/register`      | Registro          | Público      |
+| `/`              | Home              | Autenticado  |
+| `/acoes`         | Lista de Ações    | Autenticado  |
+| `/favoritas`     | Ações Favoritas   | Autenticado  |
+| `/fiis`          | Lista de FIIs     | Autenticado  |
+| `/fiis-favoritos`| FIIs Favoritos    | Autenticado  |
+
+## Estrutura
+
+```
+frontend/
+├── public/
+└── src/
+    ├── components/      → BarraNavegacao, Footer, Rotas
+    ├── pages/           → Login, Register, Home, ListaAcoes,
+    │                      Favoritas, ListaFiis, FiisFavoritos
+    └── services/        → auth.service.js, stock.service.js,
+                           fii.service.js, userLayout.service.js
+```
+
+## Serviços
+
+| Arquivo                 | Responsabilidade                              |
+|-------------------------|-----------------------------------------------|
+| `auth.service.js`       | Login, logout, registro, token JWT, perfil    |
+| `stock.service.js`      | Listagem e favoritos de ações                 |
+| `fii.service.js`        | Listagem e favoritos de FIIs                  |
+| `userLayout.service.js` | Salvar e recuperar layout das tabelas         |
+
+## Funcionalidades
+
+- **Tema Dark/Light** — alternância de tema persistida por sessão
+- **Salvar Layout** — colunas visíveis e ordem salvas por página no backend
+- **Filtros** — filtro em todos os campos das tabelas de ações e FIIs
+- **Favoritos** — preço teto e alvo com indicação visual de compra/venda
+- **Autenticação JWT** — token armazenado em `sessionStorage`, expira em 3h
