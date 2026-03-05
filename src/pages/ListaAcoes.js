@@ -7,6 +7,7 @@ import {
   Backdrop,
   Box,
   Button,
+  Chip,
   CircularProgress,
   IconButton,
   Tooltip,
@@ -24,6 +25,7 @@ import { darken } from "@mui/material";
 import StockService from "../services/stock.service";
 import AuthService from "../services/auth.service";
 import UserLayoutService from "../services/userLayout.service";
+import { collectTableState } from "../utils/tableLayout";
 
 const columns = [
   {
@@ -251,14 +253,14 @@ const columns = [
   },
   {
     accessorKey: "graham_formula",
-    header: "Formula Grham",
+    header: "Fórmula Graham",
     size: 150,
     filterVariant: "range",
     enableColumnActions: false,
   },
   {
     accessorKey: "discount_to_graham",
-    header: "Desconto Formula Grham",
+    header: "Desconto Fórmula Graham",
     size: 130,
     filterVariant: "range",
     enableColumnActions: false,
@@ -302,6 +304,44 @@ const columns = [
     size: 120,
     filterVariant: "range",
     enableColumnActions: false,
+  },
+  {
+    id: "analise_ml",
+    accessorKey: "ml_label",
+    header: "Análise ML",
+    size: 120,
+    enableColumnActions: false,
+    enableSorting: false,
+    enableColumnFilter: false,
+    Cell: ({ row }) => {
+      const { ml_label, ml_prob_barata, ml_prob_neutra, ml_prob_cara } = row.original;
+      if (!ml_label) return null;
+
+      const colorMap = { BARATA: "success", NEUTRA: "primary", CARA: "error" };
+      const toPercent = (v) => `${Math.round((v ?? 0) * 100)}%`;
+      const tooltipText = `Barata: ${toPercent(ml_prob_barata)} | Neutra: ${toPercent(ml_prob_neutra)} | Cara: ${toPercent(ml_prob_cara)}`;
+
+      return (
+        <Tooltip title={tooltipText}>
+          <Chip
+            label={ml_label}
+            color={colorMap[ml_label] ?? "default"}
+            size="small"
+            variant="filled"
+          />
+        </Tooltip>
+      );
+    },
+  },
+  {
+    id: "composite_score",
+    accessorKey: "ml_score",
+    header: "Score",
+    size: 80,
+    enableColumnActions: false,
+    enableSorting: false,
+    enableColumnFilter: false,
+    Cell: ({ row }) => row.original.ml_score ?? null,
   },
 ];
 
@@ -391,48 +431,21 @@ function ListaAcoes() {
     }
   };
 
-  const handleSaveLayout = async (state) => {
+  const saveLayout = async () => {
+    const tableState = collectTableState(table);
+    if (!tableState) return;
+
+    const json = JSON.stringify(tableState);
+    sessionStorage.setItem("stateListaAcoes", json);
     setLoading(true);
-
     try {
-      await UserLayoutService.saveLayout("ListaAcoes", state);
-
-      setLoading(false);
-      setSnackbar({
-        children: "Layout salvo com sucesso!",
-        severity: "success",
-      });
+      await UserLayoutService.saveLayout("ListaAcoes", json);
+      setSnackbar({ children: "Layout salvo com sucesso!", severity: "success" });
     } catch (error) {
       console.error("Erro ao salvar o layout:", error);
-      setLoading(false);
       setSnackbar({ children: "Erro ao salvar layout!", severity: "error" });
-    }
-  };
-
-  const saveColumnStateToSessionStorage = () => {
-    let state = table.getState();
-
-    const tableState = {};
-
-    if (Object.keys(state.columnVisibility).length > 0) {
-      tableState.columnVisibility = state.columnVisibility;
-    }
-    if (Object.keys(state.columnOrder).length > 0) {
-      tableState.columnOrder = state.columnOrder;
-    }
-    if (Object.keys(state.columnSizing).length > 0) {
-      tableState.columnSizing = state.columnSizing;
-    }
-    if (state.pagination !== undefined && state.pagination !== null) {
-      tableState.pagination = state.pagination;
-    }
-    if (state.density !== undefined && state.density !== null) {
-      tableState.density = state.density;
-    }
-
-    if (Object.keys(tableState).length > 0) {
-      sessionStorage.setItem("stateListaAcoes", JSON.stringify(tableState));
-      handleSaveLayout(JSON.stringify(tableState));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -519,7 +532,7 @@ function ListaAcoes() {
         </Button>
         <Button
           color="primary"
-          onClick={saveColumnStateToSessionStorage}
+          onClick={saveLayout}
           startIcon={<Save />}
           variant="contained"
         >
@@ -557,7 +570,6 @@ function ListaAcoes() {
       try {
         const data = await StockService.getAllStocks();
         setLista(data);
-
         setLoading(false);
       } catch (error) {
         console.log(error);

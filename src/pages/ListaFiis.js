@@ -23,6 +23,7 @@ import { darken } from "@mui/material";
 import FIIService from "../services/fii.service";
 import AuthService from "../services/auth.service";
 import UserLayoutService from "../services/userLayout.service";
+import { collectTableState } from "../utils/tableLayout";
 
 const columns = [
   {
@@ -238,54 +239,27 @@ function ListaFIIs() {
       console.error("Error updating FIIs:", error);
       setLoading(false);
       setSnackbar({
-        children: "Erro ao atualizar os Fiss!",
+        children: "Erro ao atualizar os FIIs!",
         severity: "error",
       });
     }
   };
 
-  const handleSaveLayout = async (state) => {
+  const saveLayout = async () => {
+    const tableState = collectTableState(table);
+    if (!tableState) return;
+
+    const json = JSON.stringify(tableState);
+    sessionStorage.setItem("stateListaFiis", json);
     setLoading(true);
-
     try {
-      await UserLayoutService.saveLayout("ListaFiis", state);
-
-      setLoading(false);
-      setSnackbar({
-        children: "Layout salvo com sucesso!",
-        severity: "success",
-      });
+      await UserLayoutService.saveLayout("ListaFiis", json);
+      setSnackbar({ children: "Layout salvo com sucesso!", severity: "success" });
     } catch (error) {
       console.error("Erro ao salvar o layout:", error);
-      setLoading(false);
       setSnackbar({ children: "Erro ao salvar layout!", severity: "error" });
-    }
-  };
-
-  const saveColumnStateToSessionStorage = () => {
-    let state = table.getState();
-
-    const tableState = {};
-
-    if (Object.keys(state.columnVisibility).length > 0) {
-      tableState.columnVisibility = state.columnVisibility;
-    }
-    if (Object.keys(state.columnOrder).length > 0) {
-      tableState.columnOrder = state.columnOrder;
-    }
-    if (Object.keys(state.columnSizing).length > 0) {
-      tableState.columnSizing = state.columnSizing;
-    }
-    if (state.pagination !== undefined && state.pagination !== null) {
-      tableState.pagination = state.pagination;
-    }
-    if (state.density !== undefined && state.density !== null) {
-      tableState.density = state.density;
-    }
-
-    if (Object.keys(tableState).length > 0) {
-      sessionStorage.setItem("stateListaFiis", JSON.stringify(tableState));
-      handleSaveLayout(JSON.stringify(tableState));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -355,7 +329,7 @@ function ListaFIIs() {
         </Button>
         <Button
           color="primary"
-          onClick={saveColumnStateToSessionStorage}
+          onClick={saveLayout}
           startIcon={<Save />}
           variant="contained"
         >

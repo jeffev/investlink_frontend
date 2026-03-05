@@ -54,52 +54,25 @@ class AuthService {
   }
 
   async loadUserLayout() {
-    try {
-      const layoutAcoes = await UserLayoutService.getLayout("ListaAcoes");
-      if (layoutAcoes) {
-        sessionStorage.setItem("stateListaAcoes", layoutAcoes);
-      } else {
-        sessionStorage.removeItem("stateListaAcoes");
-      }
-    } catch (error) {
-      console.error("Error loading user layout for ListaAcoes:", error);
-      sessionStorage.removeItem("stateListaAcoes");
-    }
+    const layouts = [
+      { name: "ListaAcoes", key: "stateListaAcoes" },
+      { name: "ListaFiis", key: "stateListaFiis" },
+      { name: "ListaFavoritas", key: "stateListaFavoritas" },
+      { name: "ListaFavoritosFiis", key: "stateListaFavoritosFiis" },
+    ];
 
-    try {
-      const layoutFiis = await UserLayoutService.getLayout("ListaFiis");
-      if (layoutFiis) {
-        sessionStorage.setItem("stateListaFiis", layoutFiis);
-      } else {
-        sessionStorage.removeItem("stateListaFiis");
+    for (const { name, key } of layouts) {
+      try {
+        const layout = await UserLayoutService.getLayout(name);
+        if (layout) {
+          sessionStorage.setItem(key, layout);
+        } else {
+          sessionStorage.removeItem(key);
+        }
+      } catch (error) {
+        console.error(`Error loading user layout for ${name}:`, error);
+        sessionStorage.removeItem(key);
       }
-    } catch (error) {
-      console.error("Error loading user layout for ListaFiis:", error);
-      sessionStorage.removeItem("stateListaFiis");
-    }
-
-    try {
-      const layoutFiis = await UserLayoutService.getLayout("ListaFavoritas");
-      if (layoutFiis) {
-        sessionStorage.setItem("stateListaFavoritas", layoutFiis);
-      } else {
-        sessionStorage.removeItem("stateListaFavoritas");
-      }
-    } catch (error) {
-      console.error("Error loading user layout for ListaFavoritas:", error);
-      sessionStorage.removeItem("stateListaFavoritas");
-    }
-
-    try {
-      const layoutFiis = await UserLayoutService.getLayout("ListaFavoritosFiis");
-      if (layoutFiis) {
-        sessionStorage.setItem("stateListaFavoritosFiis", layoutFiis);
-      } else {
-        sessionStorage.removeItem("stateListaFavoritosFiis");
-      }
-    } catch (error) {
-      console.error("Error loading user layout for ListaFavoritas:", error);
-      sessionStorage.removeItem("stateListaFavoritosFiis");
     }
   }
 
