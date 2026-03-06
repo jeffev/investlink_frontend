@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
@@ -51,7 +50,6 @@ export default function Login() {
 
   return (
     <Container component="main" maxWidth="xs">
-      <CssBaseline />
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={loading}

@@ -1,5 +1,5 @@
 import './App.css';
-import { Container } from '@mui/material';
+import { Box, Container, CssBaseline } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { createAppTheme } from './config/theme';
@@ -22,13 +22,16 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <BrowserRouter>
-        <BarraNavegacao check={darkMode} change={() => setDarkMode(!darkMode)} />
-        <Container maxWidth="xl">
-          <Rotas />
-        </Container>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <BarraNavegacao check={darkMode} change={() => setDarkMode(!darkMode)} />
+          <Container maxWidth="xl" sx={{ flex: 1 }}>
+            <Rotas />
+          </Container>
+          <Footer />
+        </Box>
       </BrowserRouter>
-      <Footer />
     </ThemeProvider>
   );
 }
