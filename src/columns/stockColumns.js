@@ -1,4 +1,4 @@
-import { Box, Chip, Tooltip } from '@mui/material';
+import { Box, Chip, Tooltip, alpha } from '@mui/material';
 
 export function getStockColumns(prefix = '', readonly = false) {
   const p = prefix ? `${prefix}.` : '';
@@ -298,7 +298,7 @@ export function getStockColumns(prefix = '', readonly = false) {
 
         if (!ml_label) return null;
 
-        const colorMap = { BARATA: 'success', NEUTRA: 'primary', CARA: 'error' };
+        const paletteMap = { BARATA: 'success', NEUTRA: 'primary', CARA: 'error' };
         const toPercent = (v) => `${Math.round((v ?? 0) * 100)}%`;
         const tooltipText = `Barata: ${toPercent(ml_prob_barata)} | Neutra: ${toPercent(ml_prob_neutra)} | Cara: ${toPercent(ml_prob_cara)}`;
 
@@ -306,9 +306,17 @@ export function getStockColumns(prefix = '', readonly = false) {
           <Tooltip title={tooltipText}>
             <Chip
               label={ml_label}
-              color={colorMap[ml_label] ?? 'default'}
               size="small"
-              variant="filled"
+              sx={(theme) => {
+                const key = paletteMap[ml_label];
+                const base = key ? theme.palette[key].main : theme.palette.grey[500];
+                return {
+                  backgroundColor: alpha(base, 0.12),
+                  color: base,
+                  border: `1px solid ${alpha(base, 0.35)}`,
+                  fontWeight: 600,
+                };
+              }}
             />
           </Tooltip>
         );

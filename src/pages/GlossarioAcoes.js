@@ -15,6 +15,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Link } from 'react-router-dom';
+import { alpha } from '@mui/material/styles';
 
 const SECTIONS = [
   {
@@ -106,19 +107,19 @@ const SECTIONS = [
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Typography variant="body2">Classificação do modelo de IA:</Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip label="BARATA" color="success" size="small" />
+              <Chip label="BARATA" size="small" sx={(theme) => { const b = theme.palette.success.main; return { backgroundColor: alpha(b, 0.12), color: b, border: `1px solid ${alpha(b, 0.35)}`, fontWeight: 600 }; }} />
               <Typography variant="body2" sx={{ alignSelf: 'center' }}>
                 — modelo prevê retorno superior ao Ibovespa em +15% ou mais.
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip label="NEUTRA" color="primary" size="small" />
+              <Chip label="NEUTRA" size="small" sx={(theme) => { const b = theme.palette.primary.main; return { backgroundColor: alpha(b, 0.12), color: b, border: `1px solid ${alpha(b, 0.35)}`, fontWeight: 600 }; }} />
               <Typography variant="body2" sx={{ alignSelf: 'center' }}>
                 — retorno esperado próximo ao do Ibovespa.
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip label="CARA" color="error" size="small" />
+              <Chip label="CARA" size="small" sx={(theme) => { const b = theme.palette.error.main; return { backgroundColor: alpha(b, 0.12), color: b, border: `1px solid ${alpha(b, 0.35)}`, fontWeight: 600 }; }} />
               <Typography variant="body2" sx={{ alignSelf: 'center' }}>
                 — modelo prevê retorno inferior ao Ibovespa em -15% ou mais.
               </Typography>

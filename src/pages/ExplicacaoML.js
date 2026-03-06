@@ -1,3 +1,4 @@
+import { alpha } from '@mui/material/styles';
 import {
   Box,
   Card,
@@ -122,7 +123,19 @@ export default function ExplicacaoML() {
           {LABEL_ROWS.map((row) => (
             <TableRow key={row.label} hover>
               <TableCell sx={{ verticalAlign: 'top', pt: 1.5 }}>
-                <Chip label={row.label} color={row.color} size="small" />
+                <Chip
+                  label={row.label}
+                  size="small"
+                  sx={(theme) => {
+                    const base = theme.palette[row.color]?.main ?? theme.palette.grey[500];
+                    return {
+                      backgroundColor: alpha(base, 0.12),
+                      color: base,
+                      border: `1px solid ${alpha(base, 0.35)}`,
+                      fontWeight: 600,
+                    };
+                  }}
+                />
               </TableCell>
               <TableCell sx={{ verticalAlign: 'top' }}>
                 <Typography variant="body2">{row.criterio}</Typography>
