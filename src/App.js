@@ -1,12 +1,11 @@
 import './App.css';
 import { Container } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { createTheme, ThemeProvider } from '@mui/material/styles'
-import { orange } from '@mui/material/colors'
+import { ThemeProvider } from '@mui/material/styles';
+import { createAppTheme } from './config/theme';
 import BarraNavegacao from './components/BarraNavegacao';
 import Footer from './components/Footer';
-import { GlobalStyles } from '@mui/styled-engine-sc';
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom';
 import Rotas from './components/Rotas';
 
 function App() {
@@ -18,21 +17,11 @@ function App() {
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
-  
-  const theme = createTheme({
-    palette: {
-      mode: darkMode ? "dark" : "light",
-      secondary: orange
-    }
-  })
+
+  const theme = createAppTheme(darkMode);
 
   return (
     <ThemeProvider theme={theme}>
-      <GlobalStyles
-        styles={{
-          body: { backgroundColor: darkMode ? "#222222" : "#FFFFFF" },
-        }}
-      />
       <BrowserRouter>
         <BarraNavegacao check={darkMode} change={() => setDarkMode(!darkMode)} />
         <Container maxWidth="xl">
@@ -41,7 +30,7 @@ function App() {
       </BrowserRouter>
       <Footer />
     </ThemeProvider>
-  )
+  );
 }
 
 export default App;

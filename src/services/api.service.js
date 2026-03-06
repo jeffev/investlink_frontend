@@ -1,7 +1,6 @@
 import axios from "axios";
 import AuthService from "./auth.service";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/v1/";
+import { API_URL } from "../config/api";
 
 class ApiService {
   constructor() {
@@ -11,6 +10,7 @@ class ApiService {
   async request(method, endpoint, data = null) {
     const token = AuthService.getToken();
     if (!token) {
+      window.location.href = "/login";
       throw new Error("Token not found");
     }
 
@@ -25,6 +25,10 @@ class ApiService {
       });
       return response.data;
     } catch (error) {
+      if (error.response?.status === 401) {
+        AuthService.logout();
+        window.location.href = "/login";
+      }
       console.error(`Error with ${method.toUpperCase()} request to ${endpoint}:`, error);
       throw error;
     }

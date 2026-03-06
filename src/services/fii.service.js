@@ -1,9 +1,16 @@
 import ApiService from "./api.service";
 
 class FiiService extends ApiService {
-  async getAllFIIs() {
-    const response = await this.request("get", "fiis");
-    return response.data;
+  async getAllFIIs({ page = 1, pageSize = 50, sorting = [], columnFilters = [] } = {}) {
+    const params = new URLSearchParams({ page, per_page: pageSize });
+    if (sorting.length > 0) {
+      params.set("sort_by", sorting[0].id);
+      params.set("sort_dir", sorting[0].desc ? "desc" : "asc");
+    }
+    if (columnFilters.length > 0) {
+      params.set("filters", JSON.stringify(columnFilters));
+    }
+    return this.request("get", `fiis?${params.toString()}`);
   }
 
   async addFavorite(fiiId) {

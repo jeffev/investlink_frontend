@@ -1,15 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   MaterialReactTable,
   useMaterialReactTable,
 } from "material-react-table";
 import {
-  Backdrop,
   Box,
   Button,
-  Chip,
-  Snackbar,
-  CircularProgress,
   IconButton,
   Tooltip,
   Typography,
@@ -19,435 +15,83 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Save from "@mui/icons-material/Save";
 import EditIcon from "@mui/icons-material/Edit";
 import StockService from "../services/stock.service";
-import Alert from "@mui/material/Alert";
 
 import UserLayoutService from "../services/userLayout.service";
 import { collectTableState } from "../utils/tableLayout";
-
-const columns = [
-  {
-    accessorKey: "id",
-    header: "ID",
-    size: 80,
-    enableEditing: false,
-    Edit: () => null,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "stock.ticker",
-    header: "Ticker",
-    size: 80,
-    enableEditing: false,
-  },
-  {
-    accessorKey: "ceiling_price",
-    header: "Preço Teto",
-    muiEditTextFieldProps: {
-      type: "number",
-    },
-    size: 100,
-    enableEditing: true,
-    filterVariant: "range",
-    Cell: ({ cell }) => {
-      const currentValue = cell.row.original.stock.price;
-      const ceilingPrice = cell.row.original.ceiling_price;
-      const isAboveCeiling = ceilingPrice && ceilingPrice < currentValue;
-      return (
-        <Box
-          component="span"
-          sx={{
-            color: isAboveCeiling ? "green" : "inherit",
-            fontWeight: isAboveCeiling ? "bold" : "normal",
-          }}
-        >
-          {ceilingPrice?.toLocaleString?.("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          })}
-        </Box>
-      );
-    },
-  },
-  {
-    accessorKey: "target_price",
-    header: "Preço Alvo",
-    muiEditTextFieldProps: {
-      type: "number",
-    },
-    size: 100,
-    enableEditing: true,
-    filterVariant: "range",
-    Cell: ({ cell }) => {
-      const currentValue = cell.row.original.stock.price;
-      const targetPrice = cell.row.original.target_price;
-      const isBelowTarget = targetPrice && targetPrice > currentValue;
-      return (
-        <Box
-          component="span"
-          sx={{
-            color: isBelowTarget ? "green" : "inherit",
-            fontWeight: isBelowTarget ? "bold" : "normal",
-          }}
-        >
-          {targetPrice?.toLocaleString?.("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          })}
-        </Box>
-      );
-    },
-  },
-
-  {
-    accessorKey: "stock.companyname",
-    header: "Nome",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "autocomplete",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.sectorname",
-    header: "Setor",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "autocomplete",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.subsectorname",
-    header: "Subsetor",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "autocomplete",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.segmentname",
-    header: "Segmento",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "autocomplete",
-    enableColumnActions: false,
-  },
-
-  {
-    accessorKey: "stock.price",
-    header: "Preço atual",
-    size: 80,
-    filterVariant: "range",
-    enableColumnActions: false,
-    enableEditing: false,
-    Cell: ({ cell }) =>
-      cell.getValue()?.toLocaleString?.("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }),
-  },
-  {
-    accessorKey: "stock.roe",
-    header: "Roe",
-    size: 70,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.roa",
-    header: "ROA",
-    size: 70,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.roic",
-    header: "ROIC",
-    size: 70,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.dy",
-    header: "DY",
-    size: 100,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.p_vp",
-    header: "PVP",
-    size: 70,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.vpa",
-    header: "VPA",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.lpa",
-    header: "LPA",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.p_l",
-    header: "PL",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.p_ebit",
-    header: "P/EBIT",
-    size: 100,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.p_ativo",
-    header: "P/Ativo",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.ev_ebit",
-    header: "EV/EBIT",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.margembruta",
-    header: "Margem Bruta",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.margemebit",
-    header: "Margem Ebit",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.margemliquida",
-    header: "Margem Líquida",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.p_capitalgiro",
-    header: "Capital de giro",
-    size: 100,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.p_ativocirculante",
-    header: "Ativo circulante",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.giroativos",
-    header: "Giro de ativo",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.dividaliquidapatrimonioliquido",
-    header: "Dívida líquida/patrimônio líquido",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.dividaliquidaebit",
-    header: "Dívida líquida/EBITDA",
-    size: 100,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.pl_ativo",
-    header: "PL/Ativo",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.passivo_ativo",
-    header: "Ativo/Passivo",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.liquidezcorrente",
-    header: "Liquidez Corrente",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.peg_ratio",
-    header: "PEG ratio",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.receitas_cagr5",
-    header: "CAGR Receitas 5 anos",
-    size: 120,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.valormercado",
-    header: "Valor Mercado",
-    size: 100,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.graham_formula",
-    header: "Fórmula Graham",
-    size: 150,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.discount_to_graham",
-    header: "Desconto Fórmula Graham",
-    size: 130,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-    Cell: ({ cell }) => (
-      <Box
-        component="span"
-        sx={(theme) => ({
-          backgroundColor:
-            cell.getValue() < 0
-              ? theme.palette.success.light
-              : cell.getValue() >= 0 && cell.getValue() < 30
-              ? theme.palette.warning.light
-              : theme.palette.error.light,
-          borderRadius: "0.25rem",
-          color: "#fff",
-          maxWidth: "9ch",
-          p: "0.25rem",
-        })}
-      >
-        {cell.getValue()?.toLocaleString?.("pt-BR")}
-      </Box>
-    ),
-  },
-  {
-    accessorKey: "stock.roic_rank",
-    header: "Rank roic",
-    size: 80,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.ey_rank",
-    header: "Earnings rank",
-    size: 80,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    accessorKey: "stock.magic_formula_rank",
-    header: "Rank fórmula mágica",
-    size: 90,
-    Edit: () => null,
-    filterVariant: "range",
-    enableColumnActions: false,
-  },
-  {
-    id: "analise_ml",
-    header: "Análise ML",
-    size: 120,
-    Edit: () => null,
-    enableColumnActions: false,
-    enableSorting: false,
-    enableColumnFilter: false,
-    Cell: ({ row }) => {
-      const { ml_label, ml_prob_barata, ml_prob_neutra, ml_prob_cara } = row.original.stock ?? {};
-      if (!ml_label) return null;
-
-      const colorMap = { BARATA: "success", NEUTRA: "primary", CARA: "error" };
-      const toPercent = (v) => `${Math.round((v ?? 0) * 100)}%`;
-      const tooltipText = `Barata: ${toPercent(ml_prob_barata)} | Neutra: ${toPercent(ml_prob_neutra)} | Cara: ${toPercent(ml_prob_cara)}`;
-
-      return (
-        <Tooltip title={tooltipText}>
-          <Chip
-            label={ml_label}
-            color={colorMap[ml_label] ?? "default"}
-            size="small"
-            variant="filled"
-          />
-        </Tooltip>
-      );
-    },
-  },
-  {
-    id: "ml_score",
-    header: "Score ML",
-    size: 80,
-    Edit: () => null,
-    enableColumnActions: false,
-    enableSorting: false,
-    enableColumnFilter: false,
-    Cell: ({ row }) => row.original.stock?.ml_score ?? null,
-  },
-];
+import { getStockColumns } from "../columns/stockColumns";
+import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
 
 const Favoritas = () => {
   const [favoritas, setFavoritas] = useState([]);
   const [snackbar, setSnackbar] = useState(null);
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
   const handleCloseSnackbar = () => setSnackbar(null);
+
+  const columns = useMemo(() => [
+    {
+      accessorKey: 'id',
+      header: 'ID',
+      size: 80,
+      enableEditing: false,
+      Edit: () => null,
+      enableHiding: false,
+    },
+    {
+      accessorKey: 'stock.ticker',
+      header: 'Ticker',
+      size: 80,
+      enableEditing: false,
+    },
+    {
+      accessorKey: 'ceiling_price',
+      header: 'Preço Teto',
+      muiEditTextFieldProps: { type: 'number' },
+      size: 100,
+      enableEditing: true,
+      filterVariant: 'range',
+      Cell: ({ cell }) => {
+        const currentValue = cell.row.original.stock.price;
+        const ceilingPrice = cell.row.original.ceiling_price;
+        const isAboveCeiling = ceilingPrice && ceilingPrice > currentValue;
+        return (
+          <Box
+            component="span"
+            sx={{
+              color: isAboveCeiling ? 'success.main' : 'inherit',
+              fontWeight: isAboveCeiling ? 'bold' : 'normal',
+            }}
+          >
+            {ceilingPrice?.toLocaleString?.('pt-BR', { style: 'currency', currency: 'BRL' })}
+          </Box>
+        );
+      },
+    },
+    {
+      accessorKey: 'target_price',
+      header: 'Preço Alvo',
+      muiEditTextFieldProps: { type: 'number' },
+      size: 100,
+      enableEditing: true,
+      filterVariant: 'range',
+      Cell: ({ cell }) => {
+        const currentValue = cell.row.original.stock.price;
+        const targetPrice = cell.row.original.target_price;
+        const isBelowTarget = targetPrice && targetPrice > currentValue;
+        return (
+          <Box
+            component="span"
+            sx={{
+              color: isBelowTarget ? 'success.main' : 'inherit',
+              fontWeight: isBelowTarget ? 'bold' : 'normal',
+            }}
+          >
+            {targetPrice?.toLocaleString?.('pt-BR', { style: 'currency', currency: 'BRL' })}
+          </Box>
+        );
+      },
+    },
+    ...getStockColumns('stock', true),
+  ], []);
 
   const handleRemoveFavorite = async (stock_ticker) => {
     try {
@@ -597,7 +241,7 @@ const Favoritas = () => {
         "stock.peg_ratio": false,
         "stock.receitas_cagr5": false,
         "stock.valormercado": false,
-        "stock.roic_rank ": false,
+        "stock.roic_rank": false,
         "stock.ey_rank": false,
       },
     },
@@ -615,28 +259,14 @@ const Favoritas = () => {
 
   return (
     <div style={{ height: 400, width: "100%" }}>
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
-      >
-        <CircularProgress color="secondary" />
-      </Backdrop>
+      <LoadingBackdrop open={loading} />
 
       {favoritas.length === 0 ? (
         <Typography variant="h6">Nenhuma ação favorita encontrada</Typography>
       ) : (
         <MaterialReactTable table={table} />
       )}
-      {!!snackbar && (
-        <Snackbar
-          open
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-          onClose={handleCloseSnackbar}
-          autoHideDuration={6000}
-        >
-          <Alert {...snackbar} onClose={handleCloseSnackbar} />
-        </Snackbar>
-      )}
+      <FeedbackSnackbar snackbar={snackbar} onClose={handleCloseSnackbar} />
     </div>
   );
 };

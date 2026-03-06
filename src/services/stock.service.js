@@ -1,17 +1,16 @@
 import ApiService from "./api.service";
 
 class StockService extends ApiService {
-  async getAllStocks() {
-    const response = await this.request("get", "stocks");
-    const stocks = response.data;
-
-    const favoritas = stocks.filter((item) => item.favorita);
-    const naoFavoritas = stocks.filter((item) => !item.favorita);
-
-    favoritas.sort((a, b) => a.ticker.localeCompare(b.ticker));
-    naoFavoritas.sort((a, b) => a.ticker.localeCompare(b.ticker));
-
-    return [...favoritas, ...naoFavoritas];
+  async getAllStocks({ page = 1, pageSize = 50, sorting = [], columnFilters = [] } = {}) {
+    const params = new URLSearchParams({ page, per_page: pageSize });
+    if (sorting.length > 0) {
+      params.set("sort_by", sorting[0].id);
+      params.set("sort_dir", sorting[0].desc ? "desc" : "asc");
+    }
+    if (columnFilters.length > 0) {
+      params.set("filters", JSON.stringify(columnFilters));
+    }
+    return this.request("get", `stocks?${params.toString()}`);
   }
 
   async addFavorite(stockId) {

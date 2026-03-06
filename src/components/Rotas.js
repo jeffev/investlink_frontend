@@ -23,7 +23,6 @@ function Rotas() {
 
             <Route path='/' element={<PrivateRoute />}>
                 <Route index element={<Home />} />
-                <Route path="/home" element={<Home />} />
                 <Route path="/listaAcoes" element={<ListaAcoes />} />
                 <Route path="/listaFiis" element={<ListaFIIs />} />
                 <Route path="/favoritas" element={<Favoritas />} />
