@@ -3,6 +3,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  Button,
   Chip,
   Table,
   TableBody,
@@ -12,6 +13,8 @@ import {
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { Link } from 'react-router-dom';
 
 const SECTIONS = [
   {
@@ -95,7 +98,7 @@ const SECTIONS = [
   {
     title: 'Análise por Inteligência Artificial',
     intro:
-      'Modelo de machine learning (GradientBoosting/XGBoost) treinado com dados históricos de indicadores fundamentalistas e retornos relativos ao Ibovespa. O modelo classifica cada ação com base em seus fundamentos atuais.',
+      'Modelo de machine learning (GradientBoosting/XGBoost) treinado com dados históricos de indicadores fundamentalistas e retornos relativos ao Ibovespa. O modelo classifica cada ação com base em seus fundamentos atuais. Veja a explicação completa na página dedicada.',
     fields: [
       {
         col: 'Análise ML',
@@ -140,9 +143,19 @@ export default function GlossarioAcoes() {
       <Typography variant="h5" gutterBottom fontWeight={700}>
         Glossário — Lista de Ações
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
         Descrição de todos os indicadores e colunas disponíveis na lista de ações.
       </Typography>
+      <Button
+        component={Link}
+        to="/explicacao-ml"
+        variant="outlined"
+        size="small"
+        endIcon={<OpenInNewIcon />}
+        sx={{ mb: 3 }}
+      >
+        Ver explicação detalhada da Análise por IA
+      </Button>
 
       {SECTIONS.map((section) => (
         <Accordion key={section.title} defaultExpanded={false} sx={{ mb: 1 }}>

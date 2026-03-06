@@ -9,6 +9,8 @@ import Favoritas from "../pages/Favoritas.js";
 import ListaFIIs from "../pages/ListaFiis.js";
 import FavoritosFiis from "../pages/FiisFavoritos.js";
 import GlossarioAcoes from "../pages/GlossarioAcoes.js";
+import GlossarioFiis from "../pages/GlossarioFiis.js";
+import ExplicacaoML from "../pages/ExplicacaoML.js";
 
 export const PrivateRoute = () => {
     const isAuthenticated = authService.isAuthenticated();
@@ -29,6 +31,8 @@ function Rotas() {
                 <Route path="/favoritas" element={<Favoritas />} />
                 <Route path="/favoritosFiis" element={<FavoritosFiis />} />
                 <Route path="/glossario-acoes" element={<GlossarioAcoes />} />
+                <Route path="/glossario-fiis" element={<GlossarioFiis />} />
+                <Route path="/explicacao-ml" element={<ExplicacaoML />} />
             </Route>
         </Routes>
     );

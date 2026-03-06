@@ -20,6 +20,7 @@ import {
   SentimentSatisfiedOutlined,
   AccountBalanceWalletOutlined,
   HelpOutlineOutlined,
+  PsychologyOutlined,
 } from '@mui/icons-material';
 import authService from '../services/auth.service';
 import { useNavigate } from 'react-router-dom';
@@ -93,6 +94,10 @@ function BarraNavegacao({ check, change }) {
               <ListItemIcon><HelpOutlineOutlined /></ListItemIcon>
               <ListItemText primary="Glossário de ações" />
             </ListItemButton>
+            <ListItemButton component={Link} to="/explicacao-ml">
+              <ListItemIcon><PsychologyOutlined /></ListItemIcon>
+              <ListItemText primary="Análise por IA" />
+            </ListItemButton>
             <Divider />
             <ListItemButton component={Link} to="/listaFiis">
               <ListItemIcon><ApartmentOutlined /></ListItemIcon>
@@ -101,6 +106,10 @@ function BarraNavegacao({ check, change }) {
             <ListItemButton component={Link} to="/favoritosFiis">
               <ListItemIcon><FavoriteOutlined /></ListItemIcon>
               <ListItemText primary="FIIs favoritos" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/glossario-fiis">
+              <ListItemIcon><HelpOutlineOutlined /></ListItemIcon>
+              <ListItemText primary="Glossário de FIIs" />
             </ListItemButton>
             <Divider />
             <ListItemButton component={Link} to="/sentimento">
