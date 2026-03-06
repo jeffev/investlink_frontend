@@ -19,6 +19,7 @@ import {
   FavoriteOutlined,
   SentimentSatisfiedOutlined,
   AccountBalanceWalletOutlined,
+  HelpOutlineOutlined,
 } from '@mui/icons-material';
 import authService from '../services/auth.service';
 import { useNavigate } from 'react-router-dom';
@@ -87,6 +88,10 @@ function BarraNavegacao({ check, change }) {
             <ListItemButton component={Link} to="/favoritas">
               <ListItemIcon><StarOutlined /></ListItemIcon>
               <ListItemText primary="Favoritas" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/glossario-acoes">
+              <ListItemIcon><HelpOutlineOutlined /></ListItemIcon>
+              <ListItemText primary="Glossário de ações" />
             </ListItemButton>
             <Divider />
             <ListItemButton component={Link} to="/listaFiis">
