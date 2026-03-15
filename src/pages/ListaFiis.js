@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -9,6 +9,8 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
+import TextField from "@mui/material/TextField";
+import Chip from "@mui/material/Chip";
 import { MRT_Localization_PT_BR } from "material-react-table/locales/pt-BR";
 import Star from "@mui/icons-material/Star";
 import StarBorder from "@mui/icons-material/StarBorder";
@@ -58,6 +60,10 @@ function ListaFIIs() {
   );
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
+  const [inputValue, setInputValue] = useState("");
+  const [search, setSearch] = useState("");
+  const [activeChip, setActiveChip] = useState(null);
+  const searchTimeout = useRef(null);
 
   const handleCloseSnackbar = () => setSnackbar(null);
   const isAdmin = AuthService.isAdmin();
@@ -71,6 +77,7 @@ function ListaFIIs() {
         pageSize: pagination.pageSize,
         sorting,
         columnFilters,
+        search,
       });
       setLista(result.data);
       setRowCount(result.pagination.total);
@@ -79,7 +86,7 @@ function ListaFIIs() {
     } finally {
       setIsFetching(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize, sorting, columnFilters]);
+  }, [pagination.pageIndex, pagination.pageSize, sorting, columnFilters, search]);
 
   useEffect(() => {
     fetchData();
@@ -143,6 +150,36 @@ function ListaFIIs() {
     }
   };
 
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      setSearch(value);
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }, 400);
+  };
+
+  const handleChip = (chipName) => {
+    if (activeChip === chipName) {
+      setActiveChip(null);
+      setColumnFilters([]);
+      setSorting([]);
+    } else {
+      setActiveChip(chipName);
+      setColumnFilters([]);
+      setSorting([]);
+      if (chipName === "dy") {
+        setColumnFilters([{ id: "dy", value: [8, ""] }]);
+      } else if (chipName === "pvp") {
+        setColumnFilters([{ id: "p_vp", value: ["", 1] }]);
+      } else if (chipName === "liquidez") {
+        setSorting([{ id: "liquidezmediadiaria", desc: true }]);
+      }
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }
+  };
+
   const table = useMaterialReactTable({
     columns,
     data: lista,
@@ -190,18 +227,66 @@ function ListaFIIs() {
     ),
     localization: MRT_Localization_PT_BR,
     renderTopToolbarCustomActions: () => (
-      <Box sx={{ display: "flex", gap: "1rem", p: "0.5rem", flexWrap: "wrap" }}>
-        <Button color="primary" onClick={handleExportData} startIcon={<Download />} variant="contained">
-          Exportar
-        </Button>
-        <Button color="primary" onClick={saveLayout} startIcon={<Save />} variant="contained">
-          Salvar layout
-        </Button>
-        {isAdmin && (
-          <Button color="secondary" onClick={handleUpdateFIIs} variant="contained">
-            Atualizar FIIs
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%" }}>
+        <Box sx={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+          <TextField
+            placeholder="Buscar por ticker ou empresa..."
+            size="small"
+            value={inputValue}
+            onChange={handleSearchChange}
+            sx={{ minWidth: 250 }}
+          />
+          <Button color="primary" onClick={handleExportData} startIcon={<Download />} variant="contained">
+            Exportar
           </Button>
-        )}
+          <Button color="primary" onClick={saveLayout} startIcon={<Save />} variant="contained">
+            Salvar layout
+          </Button>
+          {isAdmin && (
+            <Button color="secondary" onClick={handleUpdateFIIs} variant="contained">
+              Atualizar FIIs
+            </Button>
+          )}
+        </Box>
+        <Box sx={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <Chip
+            label="DY > 8%"
+            color={activeChip === "dy" ? "primary" : "default"}
+            variant={activeChip === "dy" ? "filled" : "outlined"}
+            onClick={() => handleChip("dy")}
+            size="small"
+          />
+          <Chip
+            label="P/VP < 1"
+            color={activeChip === "pvp" ? "primary" : "default"}
+            variant={activeChip === "pvp" ? "filled" : "outlined"}
+            onClick={() => handleChip("pvp")}
+            size="small"
+          />
+          <Chip
+            label="Alta Liquidez"
+            color={activeChip === "liquidez" ? "primary" : "default"}
+            variant={activeChip === "liquidez" ? "filled" : "outlined"}
+            onClick={() => handleChip("liquidez")}
+            size="small"
+          />
+          {(activeChip || search) && (
+            <Chip
+              label="Limpar filtros"
+              color="error"
+              variant="outlined"
+              onClick={() => {
+                setActiveChip(null);
+                setColumnFilters([]);
+                setSorting([]);
+                setInputValue("");
+                setSearch("");
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+              size="small"
+            />
+          )}
+        </Box>
       </Box>
     ),
     muiTablePaperProps: {

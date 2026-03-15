@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -9,11 +10,14 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
+import TextField from "@mui/material/TextField";
+import Chip from "@mui/material/Chip";
 import { MRT_Localization_PT_BR } from "material-react-table/locales/pt-BR";
 import Star from "@mui/icons-material/Star";
 import StarBorder from "@mui/icons-material/StarBorder";
 import Download from "@mui/icons-material/Download";
 import Save from "@mui/icons-material/Save";
+import InfoIcon from "@mui/icons-material/Info";
 import { mkConfig, generateCsv, download } from "export-to-csv";
 import { darken } from "@mui/material";
 
@@ -65,6 +69,7 @@ const DEFAULT_COLUMN_VISIBILITY = {
 };
 
 function ListaAcoes() {
+  const navigate = useNavigate();
   const [lista, setLista] = useState([]);
   const [rowCount, setRowCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -75,6 +80,11 @@ function ListaAcoes() {
   );
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
+  const [inputValue, setInputValue] = useState("");
+  const [search, setSearch] = useState("");
+  const [activeChip, setActiveChip] = useState(null);
+  const [labelFilter, setLabelFilter] = useState(null);
+  const searchTimeout = useRef(null);
 
   const handleCloseSnackbar = () => setSnackbar(null);
   const isAdmin = AuthService.isAdmin();
@@ -88,6 +98,7 @@ function ListaAcoes() {
         pageSize: pagination.pageSize,
         sorting,
         columnFilters,
+        search,
       });
       setLista(result.data);
       setRowCount(result.pagination.total);
@@ -96,7 +107,7 @@ function ListaAcoes() {
     } finally {
       setIsFetching(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize, sorting, columnFilters]);
+  }, [pagination.pageIndex, pagination.pageSize, sorting, columnFilters, search]);
 
   useEffect(() => {
     fetchData();
@@ -160,9 +171,46 @@ function ListaAcoes() {
     }
   };
 
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      setSearch(value);
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }, 400);
+  };
+
+  const handleChip = (chipName) => {
+    if (activeChip === chipName) {
+      setActiveChip(null);
+      setColumnFilters([]);
+      setSorting([]);
+      setLabelFilter(null);
+    } else {
+      setActiveChip(chipName);
+      setColumnFilters([]);
+      setSorting([]);
+      setLabelFilter(null);
+      if (chipName === "barata") {
+        setLabelFilter("BARATA");
+      } else if (chipName === "dy") {
+        setColumnFilters([{ id: "dy", value: [8, ""] }]);
+      } else if (chipName === "magic") {
+        setSorting([{ id: "magic_formula_rank", desc: false }]);
+      }
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }
+  };
+
+  const displayData = useMemo(
+    () => (labelFilter ? lista.filter((s) => s.ml_label === labelFilter) : lista),
+    [lista, labelFilter]
+  );
+
   const table = useMaterialReactTable({
     columns,
-    data: lista,
+    data: displayData,
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
@@ -183,7 +231,7 @@ function ListaAcoes() {
     columnFilterDisplayMode: "popover",
     layoutMode: "grid",
     displayColumnDefOptions: {
-      "mrt-row-actions": { size: 40, grow: false },
+      "mrt-row-actions": { size: 90, grow: false },
     },
     initialState: {
       density: savedState.density || "compact",
@@ -193,6 +241,11 @@ function ListaAcoes() {
     },
     renderRowActions: ({ row }) => (
       <Box sx={{ display: "flex", flexWrap: "nowrap", gap: "8px" }}>
+        <Tooltip title="Ver detalhes">
+          <IconButton onClick={() => navigate(`/acao/${row.original.ticker}`)}>
+            <InfoIcon />
+          </IconButton>
+        </Tooltip>
         <IconButton
           color="secondary"
           onClick={() => handleFavoritar(row.original.favorita, row.original.ticker)}
@@ -207,18 +260,67 @@ function ListaAcoes() {
     ),
     localization: MRT_Localization_PT_BR,
     renderTopToolbarCustomActions: () => (
-      <Box sx={{ display: "flex", gap: "1rem", p: "0.5rem", flexWrap: "wrap" }}>
-        <Button color="primary" onClick={handleExportData} startIcon={<Download />} variant="contained">
-          Exportar
-        </Button>
-        <Button color="primary" onClick={saveLayout} startIcon={<Save />} variant="contained">
-          Salvar layout
-        </Button>
-        {isAdmin && (
-          <Button color="secondary" onClick={handleUpdateStocks} variant="contained">
-            Atualizar Ações
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%" }}>
+        <Box sx={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+          <TextField
+            placeholder="Buscar por ticker ou empresa..."
+            size="small"
+            value={inputValue}
+            onChange={handleSearchChange}
+            sx={{ minWidth: 250 }}
+          />
+          <Button color="primary" onClick={handleExportData} startIcon={<Download />} variant="contained">
+            Exportar
           </Button>
-        )}
+          <Button color="primary" onClick={saveLayout} startIcon={<Save />} variant="contained">
+            Salvar layout
+          </Button>
+          {isAdmin && (
+            <Button color="secondary" onClick={handleUpdateStocks} variant="contained">
+              Atualizar Ações
+            </Button>
+          )}
+        </Box>
+        <Box sx={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <Chip
+            label="BARATA"
+            color={activeChip === "barata" ? "success" : "default"}
+            variant={activeChip === "barata" ? "filled" : "outlined"}
+            onClick={() => handleChip("barata")}
+            size="small"
+          />
+          <Chip
+            label="DY > 8%"
+            color={activeChip === "dy" ? "primary" : "default"}
+            variant={activeChip === "dy" ? "filled" : "outlined"}
+            onClick={() => handleChip("dy")}
+            size="small"
+          />
+          <Chip
+            label="Top Magic Formula"
+            color={activeChip === "magic" ? "primary" : "default"}
+            variant={activeChip === "magic" ? "filled" : "outlined"}
+            onClick={() => handleChip("magic")}
+            size="small"
+          />
+          {(activeChip || search) && (
+            <Chip
+              label="Limpar filtros"
+              color="error"
+              variant="outlined"
+              onClick={() => {
+                setActiveChip(null);
+                setColumnFilters([]);
+                setSorting([]);
+                setLabelFilter(null);
+                setInputValue("");
+                setSearch("");
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+              size="small"
+            />
+          )}
+        </Box>
       </Box>
     ),
     muiTablePaperProps: {

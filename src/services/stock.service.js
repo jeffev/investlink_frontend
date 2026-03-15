@@ -1,7 +1,7 @@
 import ApiService from "./api.service";
 
 class StockService extends ApiService {
-  async getAllStocks({ page = 1, pageSize = 50, sorting = [], columnFilters = [] } = {}) {
+  async getAllStocks({ page = 1, pageSize = 50, sorting = [], columnFilters = [], search = "" } = {}) {
     const params = new URLSearchParams({ page, per_page: pageSize });
     if (sorting.length > 0) {
       params.set("sort_by", sorting[0].id);
@@ -9,6 +9,9 @@ class StockService extends ApiService {
     }
     if (columnFilters.length > 0) {
       params.set("filters", JSON.stringify(columnFilters));
+    }
+    if (search) {
+      params.set("search", search);
     }
     return this.request("get", `stocks?${params.toString()}`);
   }
