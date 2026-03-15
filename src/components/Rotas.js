@@ -11,6 +11,8 @@ import FavoritosFiis from "../pages/FiisFavoritos.js";
 import GlossarioAcoes from "../pages/GlossarioAcoes.js";
 import GlossarioFiis from "../pages/GlossarioFiis.js";
 import ExplicacaoML from "../pages/ExplicacaoML.js";
+import Portfolio from "../pages/Portfolio.js";
+import AcaoDetalhe from "../pages/AcaoDetalhe.js";
 
 export const PrivateRoute = () => {
     const isAuthenticated = authService.isAuthenticated();
@@ -33,6 +35,8 @@ function Rotas() {
                 <Route path="/glossario-acoes" element={<GlossarioAcoes />} />
                 <Route path="/glossario-fiis" element={<GlossarioFiis />} />
                 <Route path="/explicacao-ml" element={<ExplicacaoML />} />
+                <Route path="/portfolio" element={<Portfolio />} />
+                <Route path="/acao/:ticker" element={<AcaoDetalhe />} />
             </Route>
         </Routes>
     );

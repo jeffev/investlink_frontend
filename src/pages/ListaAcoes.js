@@ -6,7 +6,6 @@ import {
 } from "material-react-table";
 import {
   Box,
-  Button,
   IconButton,
   Tooltip,
 } from "@mui/material";

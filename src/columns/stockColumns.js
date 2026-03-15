@@ -240,25 +240,34 @@ export function getStockColumns(prefix = '', readonly = false) {
       size: 130,
       filterVariant: 'range',
       enableColumnActions: false,
-      Cell: ({ cell }) => (
-        <Box
-          component="span"
-          sx={(theme) => ({
-            backgroundColor:
-              cell.getValue() < 0
-                ? theme.palette.success.light
-                : cell.getValue() >= 0 && cell.getValue() < 30
-                ? theme.palette.warning.light
-                : theme.palette.error.light,
-            borderRadius: '0.25rem',
-            color: '#fff',
-            maxWidth: '9ch',
-            p: '0.25rem',
-          })}
-        >
-          {cell.getValue()?.toLocaleString?.('pt-BR')}
-        </Box>
-      ),
+      Cell: ({ cell }) => {
+        const v = cell.getValue();
+        if (v == null) return null;
+        return (
+          <Box
+            component="span"
+            sx={(theme) => {
+              const base =
+                v < 0
+                  ? theme.palette.success.main
+                  : v < 30
+                  ? theme.palette.warning.main
+                  : theme.palette.error.main;
+              return {
+                backgroundColor: alpha(base, 0.12),
+                border: `1px solid ${alpha(base, 0.35)}`,
+                borderRadius: '0.25rem',
+                color: base,
+                fontWeight: 600,
+                maxWidth: '9ch',
+                p: '0.25rem',
+              };
+            }}
+          >
+            {v.toLocaleString('pt-BR')}%
+          </Box>
+        );
+      },
     },
     {
       accessorKey: `${p}roic_rank`,
