@@ -26,6 +26,20 @@ class ApiService {
       return response.data;
     } catch (error) {
       if (error.response?.status === 401) {
+        const refreshed = await AuthService.refresh();
+        if (refreshed) {
+          try {
+            const retryResponse = await axios({
+              method,
+              url: `${this.apiUrl}${endpoint}`,
+              headers: { Authorization: `Bearer ${AuthService.getToken()}` },
+              data,
+            });
+            return retryResponse.data;
+          } catch {
+            // refresh succeeded but retry failed — proceed to logout
+          }
+        }
         AuthService.logout();
         window.location.href = "/login";
       }

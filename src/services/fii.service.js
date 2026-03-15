@@ -1,6 +1,10 @@
 import ApiService from "./api.service";
 
 class FiiService extends ApiService {
+  async getFii(ticker) {
+    return this.request("get", `fii/${ticker}`);
+  }
+
   async getAllFIIs({ page = 1, pageSize = 50, sorting = [], columnFilters = [], search = "" } = {}) {
     const params = new URLSearchParams({ page, per_page: pageSize });
     if (sorting.length > 0) {

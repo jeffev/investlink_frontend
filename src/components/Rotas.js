@@ -13,12 +13,19 @@ import GlossarioFiis from "../pages/GlossarioFiis.js";
 import ExplicacaoML from "../pages/ExplicacaoML.js";
 import Portfolio from "../pages/Portfolio.js";
 import AcaoDetalhe from "../pages/AcaoDetalhe.js";
+import FiiDetalhe from "../pages/FiiDetalhe.js";
+import Admin from "../pages/Admin.js";
+import Perfil from "../pages/Perfil.js";
 
 export const PrivateRoute = () => {
     const isAuthenticated = authService.isAuthenticated();
 
     return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 }
+
+const AdminRoute = () => {
+    return authService.isAdmin() ? <Outlet /> : <Navigate to="/" />;
+};
 
 function Rotas() {
     return (
@@ -37,6 +44,11 @@ function Rotas() {
                 <Route path="/explicacao-ml" element={<ExplicacaoML />} />
                 <Route path="/portfolio" element={<Portfolio />} />
                 <Route path="/acao/:ticker" element={<AcaoDetalhe />} />
+                <Route path="/fii/:ticker" element={<FiiDetalhe />} />
+                <Route path="/perfil" element={<Perfil />} />
+                <Route path="/admin" element={<AdminRoute />}>
+                    <Route index element={<Admin />} />
+                </Route>
             </Route>
         </Routes>
     );

@@ -21,6 +21,8 @@ import {
   AccountBalanceWalletOutlined,
   HelpOutlineOutlined,
   PsychologyOutlined,
+  AdminPanelSettingsOutlined,
+  AccountCircleOutlined,
 } from '@mui/icons-material';
 import Badge from '@mui/material/Badge';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
@@ -146,6 +148,17 @@ function BarraNavegacao({ check, change }) {
               <ListItemIcon><AccountBalanceWalletOutlined /></ListItemIcon>
               <ListItemText primary="Minha carteira" />
             </ListItemButton>
+            <Divider />
+            <ListItemButton component={Link} to="/perfil">
+              <ListItemIcon><AccountCircleOutlined /></ListItemIcon>
+              <ListItemText primary="Meu Perfil" />
+            </ListItemButton>
+            {authService.isAdmin() && (
+              <ListItemButton component={Link} to="/admin">
+                <ListItemIcon><AdminPanelSettingsOutlined /></ListItemIcon>
+                <ListItemText primary="Admin" />
+              </ListItemButton>
+            )}
           </List>
         </div>
       </Drawer>

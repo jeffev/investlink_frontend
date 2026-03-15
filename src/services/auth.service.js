@@ -10,8 +10,9 @@ class AuthService {
         password,
       });
       if (response.status === 200) {
-        const { access_token, profile, name, user_name } = response.data;
+        const { access_token, refresh_token, profile, name, user_name } = response.data;
         this.setUserSession({ profile, name, user_name, access_token });
+        if (refresh_token) sessionStorage.setItem("refresh_token", refresh_token);
 
         // Carregar o layout após o login
         await this.loadUserLayout();
@@ -25,6 +26,7 @@ class AuthService {
 
   logout() {
     sessionStorage.removeItem("user");
+    sessionStorage.removeItem("refresh_token");
     sessionStorage.removeItem("stateListaAcoes");
     sessionStorage.removeItem("stateListaFiis");
     sessionStorage.removeItem("stateListaFavoritas");
@@ -35,8 +37,9 @@ class AuthService {
     try {
       const response = await axios.post(`${API_URL}users`, userData);
       if (response.status === 201) {
-        const { access_token, profile, name, user_name } = response.data;
+        const { access_token, refresh_token, profile, name, user_name } = response.data;
         this.setUserSession({ profile, name, user_name, access_token });
+        if (refresh_token) sessionStorage.setItem("refresh_token", refresh_token);
       }
       return response;
     } catch (error) {
@@ -90,6 +93,29 @@ class AuthService {
     return user ? user.access_token : null;
   }
 
+  getRefreshToken() {
+    return sessionStorage.getItem("refresh_token");
+  }
+
+  async refresh() {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) return false;
+    try {
+      const response = await axios.post(`${API_URL}auth/refresh`, null, {
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      });
+      if (response.status === 200) {
+        const user = JSON.parse(sessionStorage.getItem("user"));
+        user.access_token = response.data.access_token;
+        sessionStorage.setItem("user", JSON.stringify(user));
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   isAuthenticated() {
     return !!sessionStorage.getItem("user");
   }
@@ -98,6 +124,17 @@ class AuthService {
     const user = JSON.parse(sessionStorage.getItem("user"));
     if (!user) return false;
     return user.profile === "ADMIN";
+  }
+
+  getCurrentUserId() {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.sub;
+    } catch {
+      return null;
+    }
   }
 }
 

@@ -13,6 +13,13 @@ describe('fii.service', () => {
     jest.restoreAllMocks();
   });
 
+  describe('getFii', () => {
+    it('chama request com get e fii/HGLG11', async () => {
+      await fiiService.getFii('HGLG11');
+      expect(fiiService.request).toHaveBeenCalledWith('get', 'fii/HGLG11');
+    });
+  });
+
   describe('getAllFIIs', () => {
     it('chama request com get e url contendo fiis', async () => {
       await fiiService.getAllFIIs({ page: 1, pageSize: 50, sorting: [], columnFilters: [] });

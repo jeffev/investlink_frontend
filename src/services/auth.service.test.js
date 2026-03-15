@@ -100,6 +100,27 @@ describe('auth.service', () => {
     });
   });
 
+  describe('getCurrentUserId', () => {
+    it('retorna null quando não há token', () => {
+      mockGetItem.mockReturnValue(null);
+      expect(authService.getCurrentUserId()).toBe(null);
+    });
+
+    it('extrai sub do payload JWT', () => {
+      // Monta um JWT falso com sub=42
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const payload = btoa(JSON.stringify({ sub: 42, exp: 9999999999 }));
+      const token = `${header}.${payload}.signature`;
+      mockGetItem.mockReturnValue(JSON.stringify({ access_token: token }));
+      expect(authService.getCurrentUserId()).toBe(42);
+    });
+
+    it('retorna null para token malformado', () => {
+      mockGetItem.mockReturnValue(JSON.stringify({ access_token: 'not.a.jwt' }));
+      expect(authService.getCurrentUserId()).toBe(null);
+    });
+  });
+
   describe('setUserSession', () => {
     it('grava user no sessionStorage', () => {
       authService.setUserSession({

@@ -8,6 +8,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { MRT_Localization_PT_BR } from "material-react-table/locales/pt-BR";
 import Star from "@mui/icons-material/Star";
 import StarBorder from "@mui/icons-material/StarBorder";
@@ -46,6 +47,7 @@ const DEFAULT_COLUMN_VISIBILITY = {
 };
 
 function ListaFIIs() {
+  const navigate = useNavigate();
   const [lista, setLista] = useState([]);
   const [rowCount, setRowCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -221,6 +223,10 @@ function ListaFIIs() {
         </IconButton>
       </Box>
     ),
+    muiTableBodyRowProps: ({ row }) => ({
+      onClick: () => navigate("/fii/" + row.original.ticker),
+      sx: { cursor: "pointer" },
+    }),
     localization: MRT_Localization_PT_BR,
     renderTopToolbarCustomActions: () => (
       <TableToolbar

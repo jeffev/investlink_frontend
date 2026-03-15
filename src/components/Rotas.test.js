@@ -12,6 +12,9 @@ jest.mock('../pages/ListaAcoes.js', () => () => <div>ListaAcoes</div>);
 jest.mock('../pages/ListaFiis.js', () => () => <div>ListaFiis</div>);
 jest.mock('../pages/Favoritas.js', () => () => <div>Favoritas</div>);
 jest.mock('../pages/FiisFavoritos.js', () => () => <div>FiisFavoritos</div>);
+jest.mock('../pages/FiiDetalhe.js', () => () => <div>FiiDetalhe</div>);
+jest.mock('../pages/Admin.js', () => () => <div>Admin</div>);
+jest.mock('../pages/Perfil.js', () => () => <div>Perfil</div>);
 
 describe('Rotas', () => {
   it('redireciona para Login quando não autenticado ao acessar rota raiz', () => {
