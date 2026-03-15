@@ -8,6 +8,7 @@ import PortfolioService from '../services/portfolio.service';
 jest.mock('../services/stock.service', () => ({
   getFavorites: jest.fn(),
   getPredictions: jest.fn(),
+  getAlerts: jest.fn(),
 }));
 jest.mock('../services/portfolio.service', () => ({
   getPortfolioSummary: jest.fn(),
@@ -23,6 +24,7 @@ const renderHome = () =>
 describe('Home', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    StockService.getAlerts.mockResolvedValue([]);
   });
 
   it('renderiza o título Dashboard', async () => {
