@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   IconButton,
+  Pagination,
   Tooltip,
 } from "@mui/material";
 import { MRT_Localization_PT_BR } from "material-react-table/locales/pt-BR";
@@ -21,10 +22,14 @@ import { collectTableState } from "../utils/tableLayout";
 import { getFiiColumns } from "../columns/fiiColumns";
 import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
 
+const PER_PAGE = 50;
+
 const FavoritosFiis = () => {
   const [favoritos, setFavoritos] = useState([]);
   const [snackbar, setSnackbar] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const handleCloseSnackbar = () => setSnackbar(null);
 
   const columns = useMemo(() => [
@@ -137,8 +142,11 @@ const FavoritosFiis = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await FiiService.getFavorites();
-        setFavoritos(data);
+        const result = await FiiService.getFavorites(page, PER_PAGE);
+        const items = result?.data ?? result;
+        const totalCount = result?.pagination?.total ?? items.length;
+        setFavoritos(items);
+        setTotal(totalCount);
         setLoading(false);
       } catch (error) {
         console.error(error);
@@ -146,7 +154,7 @@ const FavoritosFiis = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [page]);
 
   const saveLayout = async () => {
     const tableState = collectTableState(table);
@@ -239,6 +247,18 @@ const FavoritosFiis = () => {
   return (
     <>
       <MaterialReactTable table={table} />
+
+      {total > PER_PAGE && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <Pagination
+            count={Math.ceil(total / PER_PAGE)}
+            page={page}
+            onChange={(_, value) => setPage(value)}
+            color="primary"
+          />
+        </Box>
+      )}
+
       <LoadingBackdrop open={loading} />
       <FeedbackSnackbar snackbar={snackbar} onClose={handleCloseSnackbar} />
     </>

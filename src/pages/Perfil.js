@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -11,31 +10,39 @@ import {
 } from "@mui/material";
 import authService from "../services/auth.service";
 import UserService from "../services/user.service";
+import { FeedbackSnackbar } from "../components/Common/FeedbackUI";
+
+function isStrongPassword(pwd) {
+  return pwd.length >= 8 && /[A-Z]/.test(pwd) && /\d/.test(pwd);
+}
 
 const Perfil = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [feedback, setFeedback] = useState(null);
+  const [snackbar, setSnackbar] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFeedback(null);
+    setSnackbar(null);
 
     if (newPassword !== confirmPassword) {
-      setFeedback({ severity: "error", message: "A nova senha e a confirmação não coincidem." });
+      setSnackbar({ children: "A nova senha e a confirmação não coincidem.", severity: "error" });
       return;
     }
 
-    if (newPassword.length < 6) {
-      setFeedback({ severity: "error", message: "A nova senha deve ter pelo menos 6 caracteres." });
+    if (!isStrongPassword(newPassword)) {
+      setSnackbar({
+        children: "A senha deve ter ao menos 8 caracteres, 1 maiúscula e 1 número.",
+        severity: "warning",
+      });
       return;
     }
 
     const userId = authService.getCurrentUserId();
     if (!userId) {
-      setFeedback({ severity: "error", message: "Não foi possível identificar o usuário. Faça login novamente." });
+      setSnackbar({ children: "Não foi possível identificar o usuário. Faça login novamente.", severity: "error" });
       return;
     }
 
@@ -45,12 +52,12 @@ const Perfil = () => {
         current_password: currentPassword,
         new_password: newPassword,
       });
-      setFeedback({ severity: "success", message: "Senha alterada com sucesso!" });
+      setSnackbar({ children: "Senha alterada com sucesso!", severity: "success" });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch {
-      setFeedback({ severity: "error", message: "Erro ao alterar senha. Verifique a senha atual." });
+      setSnackbar({ children: "Erro ao alterar senha. Verifique a senha atual.", severity: "error" });
     } finally {
       setLoading(false);
     }
@@ -68,11 +75,6 @@ const Perfil = () => {
           titleTypographyProps={{ variant: "subtitle1", fontWeight: 700 }}
         />
         <CardContent>
-          {feedback && (
-            <Alert severity={feedback.severity} sx={{ mb: 2 }}>
-              {feedback.message}
-            </Alert>
-          )}
           <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <TextField
               label="Senha atual"
@@ -112,6 +114,8 @@ const Perfil = () => {
           </Box>
         </CardContent>
       </Card>
+
+      <FeedbackSnackbar snackbar={snackbar} onClose={() => setSnackbar(null)} />
     </Box>
   );
 };

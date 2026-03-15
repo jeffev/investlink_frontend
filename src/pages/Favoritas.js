@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   IconButton,
+  Pagination,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -22,10 +23,14 @@ import { collectTableState } from "../utils/tableLayout";
 import { getStockColumns } from "../columns/stockColumns";
 import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
 
+const PER_PAGE = 50;
+
 const Favoritas = () => {
   const [favoritas, setFavoritas] = useState([]);
   const [snackbar, setSnackbar] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const handleCloseSnackbar = () => setSnackbar(null);
 
   const columns = useMemo(() => [
@@ -129,8 +134,11 @@ const Favoritas = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await StockService.getFavorites();
-        setFavoritas(data);
+        const result = await StockService.getFavorites(page, PER_PAGE);
+        const items = result?.data ?? result;
+        const totalCount = result?.pagination?.total ?? items.length;
+        setFavoritas(items);
+        setTotal(totalCount);
         setLoading(false);
       } catch (error) {
         console.error(error);
@@ -138,7 +146,7 @@ const Favoritas = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [page]);
 
   const saveLayout = async () => {
     const tableState = collectTableState(table);
@@ -247,6 +255,18 @@ const Favoritas = () => {
       ) : (
         <MaterialReactTable table={table} />
       )}
+
+      {total > PER_PAGE && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <Pagination
+            count={Math.ceil(total / PER_PAGE)}
+            page={page}
+            onChange={(_, value) => setPage(value)}
+            color="primary"
+          />
+        </Box>
+      )}
+
       <FeedbackSnackbar snackbar={snackbar} onClose={handleCloseSnackbar} />
     </div>
   );

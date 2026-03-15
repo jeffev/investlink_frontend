@@ -24,8 +24,8 @@ class StockService extends ApiService {
     return this.request("delete", `favorites/${stockTicker}`);
   }
 
-  async getFavorites() {
-    return this.request("get", "favorites");
+  async getFavorites(page = 1, perPage = 50) {
+    return this.request("get", `favorites?page=${page}&per_page=${perPage}`);
   }
 
   async editFavorite(favoriteId, newData) {

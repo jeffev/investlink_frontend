@@ -75,7 +75,7 @@ describe('fii.service', () => {
   describe('getFavorites', () => {
     it('chama request com get e favorites/fii', async () => {
       await fiiService.getFavorites();
-      expect(fiiService.request).toHaveBeenCalledWith('get', 'favorites/fii');
+      expect(fiiService.request).toHaveBeenCalledWith('get', 'favorites/fii?page=1&per_page=50');
     });
   });
 

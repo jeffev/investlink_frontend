@@ -80,7 +80,7 @@ describe('stock.service', () => {
   describe('getFavorites', () => {
     it('chama request com get e favorites', async () => {
       await stockService.getFavorites();
-      expect(stockService.request).toHaveBeenCalledWith('get', 'favorites');
+      expect(stockService.request).toHaveBeenCalledWith('get', 'favorites?page=1&per_page=50');
     });
   });
 
