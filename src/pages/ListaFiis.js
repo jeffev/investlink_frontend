@@ -9,13 +9,9 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import TextField from "@mui/material/TextField";
-import Chip from "@mui/material/Chip";
 import { MRT_Localization_PT_BR } from "material-react-table/locales/pt-BR";
 import Star from "@mui/icons-material/Star";
 import StarBorder from "@mui/icons-material/StarBorder";
-import Download from "@mui/icons-material/Download";
-import Save from "@mui/icons-material/Save";
 import { mkConfig, generateCsv, download } from "export-to-csv";
 import { darken } from "@mui/material";
 
@@ -25,6 +21,7 @@ import UserLayoutService from "../services/userLayout.service";
 import { collectTableState } from "../utils/tableLayout";
 import { getFiiColumns } from "../columns/fiiColumns";
 import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
+import TableToolbar from '../components/Table/TableToolbar';
 
 const csvConfig = mkConfig({
   fieldSeparator: ";",
@@ -227,67 +224,31 @@ function ListaFIIs() {
     ),
     localization: MRT_Localization_PT_BR,
     renderTopToolbarCustomActions: () => (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%" }}>
-        <Box sx={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-          <TextField
-            placeholder="Buscar por ticker ou empresa..."
-            size="small"
-            value={inputValue}
-            onChange={handleSearchChange}
-            sx={{ minWidth: 250 }}
-          />
-          <Button color="primary" onClick={handleExportData} startIcon={<Download />} variant="contained">
-            Exportar
-          </Button>
-          <Button color="primary" onClick={saveLayout} startIcon={<Save />} variant="contained">
-            Salvar layout
-          </Button>
-          {isAdmin && (
-            <Button color="secondary" onClick={handleUpdateFIIs} variant="contained">
-              Atualizar FIIs
-            </Button>
-          )}
-        </Box>
-        <Box sx={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <Chip
-            label="DY > 8%"
-            color={activeChip === "dy" ? "primary" : "default"}
-            variant={activeChip === "dy" ? "filled" : "outlined"}
-            onClick={() => handleChip("dy")}
-            size="small"
-          />
-          <Chip
-            label="P/VP < 1"
-            color={activeChip === "pvp" ? "primary" : "default"}
-            variant={activeChip === "pvp" ? "filled" : "outlined"}
-            onClick={() => handleChip("pvp")}
-            size="small"
-          />
-          <Chip
-            label="Alta Liquidez"
-            color={activeChip === "liquidez" ? "primary" : "default"}
-            variant={activeChip === "liquidez" ? "filled" : "outlined"}
-            onClick={() => handleChip("liquidez")}
-            size="small"
-          />
-          {(activeChip || search) && (
-            <Chip
-              label="Limpar filtros"
-              color="error"
-              variant="outlined"
-              onClick={() => {
-                setActiveChip(null);
-                setColumnFilters([]);
-                setSorting([]);
-                setInputValue("");
-                setSearch("");
-                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-              }}
-              size="small"
-            />
-          )}
-        </Box>
-      </Box>
+      <TableToolbar
+        inputValue={inputValue}
+        onSearchChange={handleSearchChange}
+        search={search}
+        activeChip={activeChip}
+        onChip={handleChip}
+        onClear={() => {
+          setActiveChip(null);
+          setColumnFilters([]);
+          setSorting([]);
+          setInputValue("");
+          setSearch("");
+          setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+        }}
+        onExport={handleExportData}
+        onSaveLayout={saveLayout}
+        isAdmin={isAdmin}
+        onAdminUpdate={handleUpdateFIIs}
+        adminLabel="Atualizar FIIs"
+        chips={[
+          { id: 'dy', label: 'DY > 8%', color: 'primary' },
+          { id: 'pvp', label: 'P/VP < 1', color: 'primary' },
+          { id: 'liquidez', label: 'Alta Liquidez', color: 'primary' },
+        ]}
+      />
     ),
     muiTablePaperProps: {
       elevation: 0,

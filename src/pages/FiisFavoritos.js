@@ -14,6 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Save from "@mui/icons-material/Save";
 import EditIcon from "@mui/icons-material/Edit";
 import FiiService from "../services/fii.service";
+import PriceCell from '../components/Table/PriceCell';
 
 import UserLayoutService from "../services/userLayout.service";
 import { collectTableState } from "../utils/tableLayout";
@@ -48,22 +49,12 @@ const FavoritosFiis = () => {
       size: 100,
       enableEditing: true,
       filterVariant: 'range',
-      Cell: ({ cell }) => {
-        const currentValue = cell.row.original.fii.price;
-        const ceilingPrice = cell.row.original.ceiling_price;
-        const isAboveCeiling = ceilingPrice && ceilingPrice > currentValue;
-        return (
-          <Box
-            component="span"
-            sx={{
-              color: isAboveCeiling ? 'success.main' : 'inherit',
-              fontWeight: isAboveCeiling ? 'bold' : 'normal',
-            }}
-          >
-            {ceilingPrice?.toLocaleString?.('pt-BR', { style: 'currency', currency: 'BRL' })}
-          </Box>
-        );
-      },
+      Cell: ({ cell }) => (
+        <PriceCell
+          price={cell.row.original.ceiling_price}
+          currentPrice={cell.row.original.fii.price}
+        />
+      ),
     },
     {
       accessorKey: 'target_price',
@@ -72,22 +63,12 @@ const FavoritosFiis = () => {
       size: 100,
       enableEditing: true,
       filterVariant: 'range',
-      Cell: ({ cell }) => {
-        const currentValue = cell.row.original.fii.price;
-        const targetPrice = cell.row.original.target_price;
-        const isBelowTarget = targetPrice && targetPrice > currentValue;
-        return (
-          <Box
-            component="span"
-            sx={{
-              color: isBelowTarget ? 'success.main' : 'inherit',
-              fontWeight: isBelowTarget ? 'bold' : 'normal',
-            }}
-          >
-            {targetPrice?.toLocaleString?.('pt-BR', { style: 'currency', currency: 'BRL' })}
-          </Box>
-        );
-      },
+      Cell: ({ cell }) => (
+        <PriceCell
+          price={cell.row.original.target_price}
+          currentPrice={cell.row.original.fii.price}
+        />
+      ),
     },
     {
       accessorKey: 'fii.price',

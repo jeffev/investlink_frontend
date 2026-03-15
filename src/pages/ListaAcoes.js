@@ -10,13 +10,9 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import TextField from "@mui/material/TextField";
-import Chip from "@mui/material/Chip";
 import { MRT_Localization_PT_BR } from "material-react-table/locales/pt-BR";
 import Star from "@mui/icons-material/Star";
 import StarBorder from "@mui/icons-material/StarBorder";
-import Download from "@mui/icons-material/Download";
-import Save from "@mui/icons-material/Save";
 import InfoIcon from "@mui/icons-material/Info";
 import { mkConfig, generateCsv, download } from "export-to-csv";
 import { darken } from "@mui/material";
@@ -27,6 +23,7 @@ import UserLayoutService from "../services/userLayout.service";
 import { collectTableState } from "../utils/tableLayout";
 import { getStockColumns } from "../columns/stockColumns";
 import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
+import TableToolbar from '../components/Table/TableToolbar';
 
 const csvConfig = mkConfig({
   fieldSeparator: ";",
@@ -260,68 +257,32 @@ function ListaAcoes() {
     ),
     localization: MRT_Localization_PT_BR,
     renderTopToolbarCustomActions: () => (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%" }}>
-        <Box sx={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-          <TextField
-            placeholder="Buscar por ticker ou empresa..."
-            size="small"
-            value={inputValue}
-            onChange={handleSearchChange}
-            sx={{ minWidth: 250 }}
-          />
-          <Button color="primary" onClick={handleExportData} startIcon={<Download />} variant="contained">
-            Exportar
-          </Button>
-          <Button color="primary" onClick={saveLayout} startIcon={<Save />} variant="contained">
-            Salvar layout
-          </Button>
-          {isAdmin && (
-            <Button color="secondary" onClick={handleUpdateStocks} variant="contained">
-              Atualizar Ações
-            </Button>
-          )}
-        </Box>
-        <Box sx={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <Chip
-            label="BARATA"
-            color={activeChip === "barata" ? "success" : "default"}
-            variant={activeChip === "barata" ? "filled" : "outlined"}
-            onClick={() => handleChip("barata")}
-            size="small"
-          />
-          <Chip
-            label="DY > 8%"
-            color={activeChip === "dy" ? "primary" : "default"}
-            variant={activeChip === "dy" ? "filled" : "outlined"}
-            onClick={() => handleChip("dy")}
-            size="small"
-          />
-          <Chip
-            label="Top Magic Formula"
-            color={activeChip === "magic" ? "primary" : "default"}
-            variant={activeChip === "magic" ? "filled" : "outlined"}
-            onClick={() => handleChip("magic")}
-            size="small"
-          />
-          {(activeChip || search) && (
-            <Chip
-              label="Limpar filtros"
-              color="error"
-              variant="outlined"
-              onClick={() => {
-                setActiveChip(null);
-                setColumnFilters([]);
-                setSorting([]);
-                setLabelFilter(null);
-                setInputValue("");
-                setSearch("");
-                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-              }}
-              size="small"
-            />
-          )}
-        </Box>
-      </Box>
+      <TableToolbar
+        inputValue={inputValue}
+        onSearchChange={handleSearchChange}
+        search={search}
+        activeChip={activeChip}
+        onChip={handleChip}
+        onClear={() => {
+          setActiveChip(null);
+          setColumnFilters([]);
+          setSorting([]);
+          setLabelFilter(null);
+          setInputValue("");
+          setSearch("");
+          setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+        }}
+        onExport={handleExportData}
+        onSaveLayout={saveLayout}
+        isAdmin={isAdmin}
+        onAdminUpdate={handleUpdateStocks}
+        adminLabel="Atualizar Ações"
+        chips={[
+          { id: 'barata', label: 'BARATA', color: 'success' },
+          { id: 'dy', label: 'DY > 8%', color: 'primary' },
+          { id: 'magic', label: 'Top Magic Formula', color: 'primary' },
+        ]}
+      />
     ),
     muiTablePaperProps: {
       elevation: 0,
