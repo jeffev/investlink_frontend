@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
@@ -22,7 +22,10 @@ import {
   HelpOutlineOutlined,
   PsychologyOutlined,
 } from '@mui/icons-material';
+import Badge from '@mui/material/Badge';
+import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import authService from '../services/auth.service';
+import StockService from '../services/stock.service';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../assets/LOGO.png';
 
@@ -33,6 +36,15 @@ function BarraNavegacao({ check, change }) {
   const navigate = useNavigate();
 
   const isUserLoggedIn = !!sessionStorage.getItem('user');
+
+  const [alertCount, setAlertCount] = useState(0);
+
+  useEffect(() => {
+    if (!isUserLoggedIn) return;
+    StockService.getAlerts()
+      .then((data) => setAlertCount(Array.isArray(data) ? data.length : 0))
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogout = useCallback(() => {
     authService.logout();
@@ -58,6 +70,19 @@ function BarraNavegacao({ check, change }) {
               Invest Link
             </Typography>
           </Box>
+          {alertCount > 0 && (
+            <IconButton
+              component={Link}
+              to="/favoritas"
+              size="large"
+              sx={{ mr: 1 }}
+              aria-label={`${alertCount} alertas de preço`}
+            >
+              <Badge badgeContent={alertCount} color="error">
+                <NotificationsOutlinedIcon />
+              </Badge>
+            </IconButton>
+          )}
           <FormControlLabel
             control={<Switch color="secondary" onChange={change} checked={check} />}
             label="Modo escuro"
@@ -117,7 +142,7 @@ function BarraNavegacao({ check, change }) {
               <ListItemText primary="Sentimento de mercado" />
             </ListItemButton>
             <Divider />
-            <ListItemButton component={Link} to="/minhaCarteira">
+            <ListItemButton component={Link} to="/portfolio">
               <ListItemIcon><AccountBalanceWalletOutlined /></ListItemIcon>
               <ListItemText primary="Minha carteira" />
             </ListItemButton>

@@ -32,6 +32,18 @@ class StockService extends ApiService {
   async updateStocks() {
     return this.request("put", "stocks/update-stocks");
   }
+
+  async getStock(ticker) {
+    return this.request("get", `stock/${ticker.toUpperCase()}`);
+  }
+
+  async getPredictions() {
+    return this.request("get", "stocks/predictions");
+  }
+
+  async getAlerts() {
+    return this.request("get", "favorites/alerts");
+  }
 }
 
 const stockServiceInstance = new StockService();
