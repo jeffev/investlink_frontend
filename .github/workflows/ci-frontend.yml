@@ -28,7 +28,9 @@ jobs:
 
       - name: Run tests
         run: |
-          npm test --if-present --silent
+          npm test -- --watchAll=false --passWithNoTests --coverage
+        env:
+          CI: true
         working-directory: ./
 
       - name: Build
