@@ -45,30 +45,41 @@ npm run build
 
 ## Testes
 
-### Unitários / Integração (Jest + React Testing Library)
+### Unitários (Jest + React Testing Library)
 
 ```bash
 npm test -- --watchAll=false
 ```
 
-Cobertura atual: 10 suites, 95 testes.
+### E2E (Cypress)
 
-### E2E (Playwright)
+> **Windows:** rodar no **PowerShell** ou **CMD** — o binário do Cypress não funciona no Git Bash.
 
 ```bash
-# Instalar browsers (primeira vez)
-npx playwright install chromium
+# Abre a UI interativa
+npm run cy:open
 
-# Rodar todos os testes E2E
-npm run e2e
+# Roda todos os testes headless
+npm run cy:run
 
-# Ver relatório HTML
-npm run e2e:report
+# Roda um spec específico
+npm run cy:run -- --spec "cypress/e2e/favoritas.cy.js"
 ```
 
-Os testes E2E usam `page.route()` para mockar as chamadas de API — **não precisam de backend rodando**.
+Os testes E2E usam `cy.intercept()` para mockar chamadas de API — **não precisam de backend rodando**.
 
-Spec files em `e2e/`: autenticação, dashboard, lista de ações, favoritas, portfolio.
+#### Specs disponíveis
+
+| Arquivo              | Cenários cobertos                                      |
+|----------------------|--------------------------------------------------------|
+| `auth.cy.js`         | Login, logout, validações de campo, redirecionamentos  |
+| `register.cy.js`     | Cadastro válido, usuário duplicado, link para login    |
+| `dashboard.cy.js`    | Cards de favoritas, Top Picks ML, resumo da carteira   |
+| `stocks.cy.js`       | Lista, busca, chips de filtro, favoritar, detalhe      |
+| `acao-detalhe.cy.js` | Indicadores, label ML, preço em BRL, botão Voltar      |
+| `favoritas.cy.js`    | Exibição, editar, remover, preço teto, salvar layout   |
+| `fiis.cy.js`         | Lista, busca, chip DY, navegação para detalhe          |
+| `portfolio.cy.js`    | Adicionar/remover posição, validação de modal          |
 
 ## Páginas
 
@@ -82,25 +93,30 @@ Spec files em `e2e/`: autenticação, dashboard, lista de ações, favoritas, po
 | `/favoritas`      | Ações Favoritas    | Autenticado  |
 | `/listaFiis`      | Lista de FIIs      | Autenticado  |
 | `/fiisFavoritos`  | FIIs Favoritos     | Autenticado  |
+| `/fii/:ticker`    | Detalhe do FII     | Autenticado  |
 | `/portfolio`      | Minha Carteira     | Autenticado  |
 
 ## Estrutura
 
 ```
 frontend/
-├── e2e/                     → testes E2E (Playwright)
-│   ├── helpers/mockApi.js   → mocks centralizados de API
-│   └── *.spec.js
+├── cypress/
+│   ├── e2e/             → specs Cypress (um por página)
+│   ├── fixtures/
+│   │   └── mockData.js  → dados mockados compartilhados entre specs
+│   └── support/
+│       ├── commands.js  → cy.visitAuthenticated(), cy.setupMocks()
+│       └── e2e.js       → ponto de entrada do support
 ├── public/
 └── src/
-    ├── columns/             → definição de colunas das tabelas (stockColumns, fiiColumns)
+    ├── columns/         → definição de colunas das tabelas (stockColumns, fiiColumns)
     ├── components/
-    │   ├── Common/          → FeedbackUI (LoadingBackdrop, FeedbackSnackbar)
-    │   └── Table/           → PriceCell, TableToolbar (componentes reutilizáveis)
-    ├── pages/               → Login, Register, Home, ListaAcoes, AcaoDetalhe,
-    │                          Favoritas, ListaFiis, FiisFavoritos, Portfolio
-    ├── services/            → auth, stock, fii, portfolio, userLayout
-    └── utils/               → tableLayout.js
+    │   ├── Common/      → FeedbackUI (LoadingBackdrop, FeedbackSnackbar)
+    │   └── Table/       → PriceCell, TableToolbar
+    ├── pages/           → Login, Register, Home, ListaAcoes, AcaoDetalhe,
+    │                      Favoritas, ListaFiis, FiisFavoritos, Portfolio
+    ├── services/        → auth, stock, fii, portfolio, userLayout
+    └── utils/           → tableLayout.js
 ```
 
 ## Serviços
@@ -123,5 +139,5 @@ frontend/
 - **Alertas de preço** — badge no menu quando alguma favorita atingiu o preço teto ou alvo
 - **Tema Dark/Light** — alternância de tema persistida por sessão
 - **Salvar Layout** — colunas visíveis e ordem salvas por página no backend
-- **Autenticação JWT** — token armazenado em `sessionStorage`, expira em 3h
+- **Autenticação JWT** — token armazenado em `sessionStorage`, expira em 3h com refresh automático
 - **Export CSV** — exportação das tabelas para CSV com separador `;`

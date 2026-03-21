@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@playwright/test": "^1.44.0",
+    "cypress": "^12.17.4",
     "typescript": "4.9.5"
   },
   "overrides": {
@@ -39,8 +39,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "e2e": "playwright test",
-    "e2e:report": "playwright show-report"
+    "cy:open": "cypress open",
+    "cy:run": "cypress run"
   },
   "jest": {
     "transformIgnorePatterns": [

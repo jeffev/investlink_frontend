@@ -10,9 +10,47 @@ cd /d/Investlink/frontend
 npm install        # instalar dependências
 npm start          # dev server
 npm run build      # build produção
-npm test           # testes (--silent para suprimir output)
+npm test           # testes unitários (--silent para suprimir output)
 npm run lint       # eslint
 ```
+
+## Testes E2E (Cypress)
+
+```bash
+# IMPORTANTE: rodar no PowerShell ou CMD — o binário do Cypress falha no Git Bash (Windows 11)
+
+npm run cy:open                                          # abre a UI interativa do Cypress
+npm run cy:run                                           # roda todos os testes headless
+npm run cy:run -- --spec "cypress/e2e/favoritas.cy.js"  # roda um spec específico
+```
+
+### Estrutura dos testes E2E
+```
+cypress/
+  e2e/
+    auth.cy.js         → login, logout, validações de campo
+    register.cy.js     → cadastro de usuário
+    dashboard.cy.js    → página inicial autenticada
+    stocks.cy.js       → lista de ações, busca, filtros, favoritar
+    acao-detalhe.cy.js → detalhe de ação (indicadores, ML, preço)
+    favoritas.cy.js    → gestão de favoritas (editar, remover, layout)
+    fiis.cy.js         → lista de FIIs, busca, navegação
+    portfolio.cy.js    → carteira (adicionar, remover posições)
+  fixtures/
+    mockData.js        → dados mockados compartilhados entre specs
+  support/
+    commands.js        → cy.visitAuthenticated() e cy.setupMocks()
+    e2e.js             → ponto de entrada do support
+```
+
+### Gotchas dos testes E2E
+- Auth: token fica no `sessionStorage` (chave `user`), não localStorage — `cy.visitAuthenticated()` já injeta isso via `onBeforeLoad`
+- MUI v5 `<Tooltip title="...">` NÃO adiciona atributo HTML `title` ao filho → use classes CSS:
+  - `button.MuiIconButton-colorError` para botões de deletar/remover (`color="error"`)
+  - `button.MuiIconButton-colorSecondary` para botões de favoritar (`color="secondary"`)
+  - `.prev('button')` para encontrar o botão Edit que precede o Delete na mesma linha
+- FIIs navegam via click na linha inteira (`muiTableBodyRowProps`) — não há botão "Ver detalhes"
+- `cy.intercept()` no Cypress: o **último** registro ganha em caso de overlap — registrar padrões mais específicos depois dos genéricos
 
 ## Estrutura
 ```
@@ -50,7 +88,7 @@ useEffect(() => {
 ```javascript
 import authService from '../services/auth.service';
 
-// Token é armazenado no localStorage automaticamente pelo auth.service
+// Token é armazenado no sessionStorage (chave 'user') pelo auth.service
 // Para verificar se está logado:
 authService.getCurrentUser()  // retorna null se não logado
 ```
