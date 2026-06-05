@@ -37,6 +37,36 @@ function getMlChipColor(label) {
   return "default";
 }
 
+function computeCeilingPrices(stock) {
+  const price = stock?.price;
+  const dy = stock?.dy;
+  const cagr = stock?.receitas_cagr5;
+
+  if (!price || !dy || dy <= 0) return {};
+
+  const dividendoAnual = price * (dy / 100);
+  const bazinTeto = dividendoAnual / 0.06;
+  const bazinDiscount =
+    bazinTeto > 0 ? ((bazinTeto - price) / bazinTeto) * 100 : null;
+
+  const k = 0.12;
+  const g = cagr != null ? Math.min(Math.max(cagr / 100, 0), 0.1) : 0;
+  let gordonTeto = null;
+  let gordonDiscount = null;
+  if (k > g) {
+    gordonTeto = dividendoAnual / (k - g);
+    gordonDiscount =
+      gordonTeto > 0 ? ((gordonTeto - price) / gordonTeto) * 100 : null;
+  }
+
+  return {
+    bazin_teto: bazinTeto,
+    bazin_discount: bazinDiscount,
+    gordon_teto: gordonTeto,
+    gordon_discount: gordonDiscount,
+  };
+}
+
 const INDICATOR_GROUPS = [
   {
     title: "Valuation",
@@ -83,34 +113,56 @@ const INDICATOR_GROUPS = [
     title: "Graham",
     fields: [
       { label: "Preço Graham", key: "graham_formula", format: "currency" },
-      { label: "Desconto Graham", key: "discount_to_graham", format: "percent" },
+      { label: "Desconto Graham", key: "discount_to_graham", format: "percent", colorBySign: true },
       { label: "VPA", key: "vpa", format: "currency" },
       { label: "LPA", key: "lpa", format: "currency" },
     ],
   },
+  {
+    title: "Preço Teto",
+    subtitle: "Bazin: DY÷6%  |  Gordon: k=12%, g=CAGR Receita",
+    fields: [
+      { label: "Teto Bazin", key: "bazin_teto", format: "currency" },
+      { label: "Desconto Bazin", key: "bazin_discount", format: "percent", colorBySign: true },
+      { label: "Teto Gordon", key: "gordon_teto", format: "currency" },
+      { label: "Desconto Gordon", key: "gordon_discount", format: "percent", colorBySign: true },
+    ],
+  },
 ];
 
-function IndicatorCard({ title, fields, stock }) {
+function IndicatorCard({ title, subtitle, fields, stock }) {
   return (
     <Grid item xs={12} sm={6} md={4}>
       <Card variant="outlined" sx={{ height: "100%" }}>
         <CardHeader
           title={title}
+          subheader={subtitle}
           titleTypographyProps={{ variant: "subtitle1", fontWeight: 700 }}
+          subheaderTypographyProps={{ variant: "caption" }}
         />
         <CardContent sx={{ pt: 0 }}>
           <Table size="small">
             <TableBody>
-              {fields.map(({ label, key, format }) => (
-                <TableRow key={key}>
-                  <TableCell sx={{ color: "text.secondary", border: 0, pl: 0 }}>
-                    {label}
-                  </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 500, border: 0, pr: 0 }}>
-                    {formatValue(stock[key], format)}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {fields.map(({ label, key, format, colorBySign }) => {
+                const val = stock[key];
+                let color = "inherit";
+                if (colorBySign && val != null) {
+                  color = val >= 0 ? "success.main" : "error.main";
+                }
+                return (
+                  <TableRow key={key}>
+                    <TableCell sx={{ color: "text.secondary", border: 0, pl: 0 }}>
+                      {label}
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{ fontWeight: 500, border: 0, pr: 0, color }}
+                    >
+                      {formatValue(val, format)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -243,7 +295,7 @@ function FavoriteTargetsCard({ favorite, price }) {
 const AcaoDetalhe = () => {
   const { ticker } = useParams();
   const navigate = useNavigate();
-  const [stock, setStock] = useState(null);
+  const [stockRaw, setStockRaw] = useState(null);
   const [favorite, setFavorite] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -255,7 +307,7 @@ const AcaoDetalhe = () => {
           StockService.getStock(ticker),
           StockService.getFavorites(),
         ]);
-        setStock(stockData);
+        setStockRaw(stockData);
         const fav = favoritesData.find(
           (f) => f.stock?.ticker === ticker.toUpperCase()
         );
@@ -268,6 +320,8 @@ const AcaoDetalhe = () => {
     };
     fetchData();
   }, [ticker]);
+
+  const stock = stockRaw ? { ...stockRaw, ...computeCeilingPrices(stockRaw) } : null;
 
   if (loading)
     return (
@@ -357,6 +411,7 @@ const AcaoDetalhe = () => {
           <IndicatorCard
             key={group.title}
             title={group.title}
+            subtitle={group.subtitle}
             fields={group.fields}
             stock={stock}
           />
