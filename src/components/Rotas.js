@@ -17,6 +17,7 @@ import FiiDetalhe from "../pages/FiiDetalhe.js";
 import Admin from "../pages/Admin.js";
 import Perfil from "../pages/Perfil.js";
 import Comparar from "../pages/Comparar.js";
+import Noticias from "../pages/Noticias.js";
 
 export const PrivateRoute = () => {
     const isAuthenticated = authService.isAuthenticated();
@@ -48,6 +49,7 @@ function Rotas() {
                 <Route path="/fii/:ticker" element={<FiiDetalhe />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/comparar" element={<Comparar />} />
+                <Route path="/noticias" element={<Noticias />} />
                 <Route path="/admin" element={<AdminRoute />}>
                     <Route index element={<Admin />} />
                 </Route>

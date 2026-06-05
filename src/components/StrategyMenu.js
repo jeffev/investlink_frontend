@@ -19,9 +19,10 @@ import {
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkAddIcon from "@mui/icons-material/BookmarkAdd";
 import DeleteIcon from "@mui/icons-material/Delete";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import StrategyService from "../services/strategy.service";
 
-function StrategyMenu({ assetType, columnFilters, sorting, onApplyStrategy }) {
+function StrategyMenu({ assetType, columnFilters, sorting, onApplyStrategy, onBacktest }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [strategies, setStrategies] = useState([]);
   const [loadingStrategies, setLoadingStrategies] = useState(false);
@@ -155,6 +156,28 @@ function StrategyMenu({ assetType, columnFilters, sorting, onApplyStrategy }) {
           ))}
 
         <Divider sx={{ my: 0.5 }} />
+
+        {onBacktest &&
+          !loadingStrategies &&
+          strategies.map((strategy) =>
+            strategy.asset_type === "STOCK" ? (
+              <MenuItem
+                key={`bt-${strategy.id}`}
+                onClick={() => {
+                  handleCloseMenu();
+                  onBacktest(strategy);
+                }}
+                sx={{ color: "primary.main" }}
+              >
+                <QueryStatsIcon fontSize="small" sx={{ mr: 1 }} />
+                <Typography variant="body2">Backtest: {strategy.name}</Typography>
+              </MenuItem>
+            ) : null
+          )}
+
+        {onBacktest && !loadingStrategies && strategies.some((s) => s.asset_type === "STOCK") && (
+          <Divider sx={{ my: 0.5 }} />
+        )}
 
         <MenuItem
           onClick={() => {

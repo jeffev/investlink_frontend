@@ -24,6 +24,7 @@ import {
   AdminPanelSettingsOutlined,
   AccountCircleOutlined,
   CompareArrowsOutlined,
+  FeedOutlined,
 } from '@mui/icons-material';
 import Badge from '@mui/material/Badge';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
@@ -152,6 +153,10 @@ function BarraNavegacao({ check, change }) {
             <ListItemButton component={Link} to="/comparar">
               <ListItemIcon><CompareArrowsOutlined /></ListItemIcon>
               <ListItemText primary="Comparar ativos" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/noticias">
+              <ListItemIcon><FeedOutlined /></ListItemIcon>
+              <ListItemText primary="Notícias" />
             </ListItemButton>
             <Divider />
             <ListItemButton component={Link} to="/perfil">

@@ -24,6 +24,7 @@ import { getStockColumns } from "../columns/stockColumns";
 import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
 import TableToolbar from '../components/Table/TableToolbar';
 import StrategyMenu from "../components/StrategyMenu";
+import BacktestModal from "../components/BacktestModal";
 
 const csvConfig = mkConfig({
   fieldSeparator: ";",
@@ -81,6 +82,7 @@ function ListaAcoes() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState(null);
   const [labelFilter, setLabelFilter] = useState(null);
+  const [backtestStrategy, setBacktestStrategy] = useState(null);
   const searchTimeout = useRef(null);
 
   const handleCloseSnackbar = () => setSnackbar(null);
@@ -294,6 +296,7 @@ function ListaAcoes() {
               setLabelFilter(null);
               setPagination((p) => ({ ...p, pageIndex: 0 }));
             }}
+            onBacktest={(strategy) => setBacktestStrategy(strategy)}
           />
         }
       />
@@ -316,6 +319,11 @@ function ListaAcoes() {
       <LoadingBackdrop open={loading} />
       <MaterialReactTable table={table} />
       <FeedbackSnackbar snackbar={snackbar} onClose={handleCloseSnackbar} />
+      <BacktestModal
+        open={Boolean(backtestStrategy)}
+        strategy={backtestStrategy}
+        onClose={() => setBacktestStrategy(null)}
+      />
     </div>
   );
 }
