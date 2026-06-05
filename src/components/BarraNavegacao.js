@@ -23,6 +23,7 @@ import {
   PsychologyOutlined,
   AdminPanelSettingsOutlined,
   AccountCircleOutlined,
+  CompareArrowsOutlined,
 } from '@mui/icons-material';
 import Badge from '@mui/material/Badge';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
@@ -147,6 +148,10 @@ function BarraNavegacao({ check, change }) {
             <ListItemButton component={Link} to="/portfolio">
               <ListItemIcon><AccountBalanceWalletOutlined /></ListItemIcon>
               <ListItemText primary="Minha carteira" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/comparar">
+              <ListItemIcon><CompareArrowsOutlined /></ListItemIcon>
+              <ListItemText primary="Comparar ativos" />
             </ListItemButton>
             <Divider />
             <ListItemButton component={Link} to="/perfil">
