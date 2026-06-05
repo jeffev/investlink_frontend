@@ -40,6 +40,18 @@ class PortfolioService extends ApiService {
   async getProjectedIncome() {
     return this.request("get", "portfolio/projected-income");
   }
+
+  async getTransactions() {
+    return this.request("get", "transactions");
+  }
+
+  async createTransaction(data) {
+    return this.request("post", "transactions", data);
+  }
+
+  async deleteTransaction(id) {
+    return this.request("delete", `transaction/${id}`);
+  }
 }
 
 const portfolioServiceInstance = new PortfolioService();
