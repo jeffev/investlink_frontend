@@ -22,6 +22,7 @@ import { collectTableState } from "../utils/tableLayout";
 import { getFiiColumns } from "../columns/fiiColumns";
 import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
 import TableToolbar from '../components/Table/TableToolbar';
+import StrategyMenu from "../components/StrategyMenu";
 
 const csvConfig = mkConfig({
   fieldSeparator: ";",
@@ -253,6 +254,19 @@ function ListaFIIs() {
           { id: 'pvp', label: 'P/VP < 1', color: 'primary' },
           { id: 'liquidez', label: 'Alta Liquidez', color: 'primary' },
         ]}
+        extraActions={
+          <StrategyMenu
+            assetType="FII"
+            columnFilters={columnFilters}
+            sorting={sorting}
+            onApplyStrategy={(filters, sort) => {
+              setColumnFilters(filters);
+              setSorting(sort);
+              setActiveChip(null);
+              setPagination((p) => ({ ...p, pageIndex: 0 }));
+            }}
+          />
+        }
       />
     ),
     muiTablePaperProps: {

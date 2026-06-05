@@ -23,6 +23,7 @@ import { collectTableState } from "../utils/tableLayout";
 import { getStockColumns } from "../columns/stockColumns";
 import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
 import TableToolbar from '../components/Table/TableToolbar';
+import StrategyMenu from "../components/StrategyMenu";
 
 const csvConfig = mkConfig({
   fieldSeparator: ";",
@@ -281,6 +282,20 @@ function ListaAcoes() {
           { id: 'dy', label: 'DY > 8%', color: 'primary' },
           { id: 'magic', label: 'Top Magic Formula', color: 'primary' },
         ]}
+        extraActions={
+          <StrategyMenu
+            assetType="STOCK"
+            columnFilters={columnFilters}
+            sorting={sorting}
+            onApplyStrategy={(filters, sort) => {
+              setColumnFilters(filters);
+              setSorting(sort);
+              setActiveChip(null);
+              setLabelFilter(null);
+              setPagination((p) => ({ ...p, pageIndex: 0 }));
+            }}
+          />
+        }
       />
     ),
     muiTablePaperProps: {

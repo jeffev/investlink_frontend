@@ -19,6 +19,7 @@ function TableToolbar({
   onAdminUpdate,
   adminLabel,
   chips,
+  extraActions,
 }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
@@ -41,6 +42,7 @@ function TableToolbar({
             {adminLabel}
           </Button>
         )}
+        {extraActions}
       </Box>
       <Box sx={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         {chips.map((chip) => (
