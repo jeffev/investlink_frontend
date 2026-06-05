@@ -35,6 +35,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import PortfolioService from "../services/portfolio.service";
 import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
 import DonutChart, { buildSectors } from "../components/ConcentrationChart";
+import BenchmarkBar from "../components/BenchmarkBar";
 
 const formatCurrency = (value) => {
   if (value == null) return "—";
@@ -732,6 +733,7 @@ const Portfolio = () => {
   const [fiiPositions, setFiiPositions] = useState([]);
   const [summary, setSummary] = useState(null);
   const [projectedIncome, setProjectedIncome] = useState(null);
+  const [benchmarks, setBenchmarks] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -883,6 +885,12 @@ const Portfolio = () => {
       .then((data) => setProjectedIncome(data))
       .catch(() => {});
   }, [positions, fiiPositions]);
+
+  useEffect(() => {
+    PortfolioService.getBenchmarks()
+      .then((data) => setBenchmarks(data))
+      .catch(() => {});
+  }, []);
 
   const handleEditPosition = async (newRow) => {
     try {
@@ -1051,6 +1059,11 @@ const Portfolio = () => {
       <SummaryCards
         summary={summary}
         projectedMonthly={projectedIncome?.monthly ?? null}
+      />
+
+      <BenchmarkBar
+        benchmarks={benchmarks}
+        portfolioPct={summary?.total_pnl_percent ?? null}
       />
 
       <Tabs

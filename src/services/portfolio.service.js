@@ -41,6 +41,10 @@ class PortfolioService extends ApiService {
     return this.request("get", "portfolio/projected-income");
   }
 
+  async getBenchmarks() {
+    return this.request("get", "benchmarks");
+  }
+
   async getTransactions() {
     return this.request("get", "transactions");
   }

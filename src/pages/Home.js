@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import StockService from "../services/stock.service";
 import PortfolioService from "../services/portfolio.service";
+import BenchmarkBar from "../components/BenchmarkBar";
 
 function getMlChipColor(label) {
   if (label === "BARATA") return "success";
@@ -260,6 +261,7 @@ function TopPicksCard({ picks, loading }) {
 const Home = () => {
   const [portfolioSummary, setPortfolioSummary] = useState(null);
   const [projectedIncome, setProjectedIncome] = useState(null);
+  const [benchmarks, setBenchmarks] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [topPicks, setTopPicks] = useState([]);
   const [alerts, setAlerts] = useState([]);
@@ -278,6 +280,10 @@ const Home = () => {
 
     PortfolioService.getProjectedIncome()
       .then((data) => setProjectedIncome(data))
+      .catch(() => {});
+
+    PortfolioService.getBenchmarks()
+      .then((data) => setBenchmarks(data))
       .catch(() => {});
 
     StockService.getFavorites()
@@ -322,6 +328,10 @@ const Home = () => {
             <PortfolioCard
               summary={portfolioSummary}
               projectedMonthly={projectedIncome?.monthly ?? null}
+            />
+            <BenchmarkBar
+              benchmarks={benchmarks}
+              portfolioPct={portfolioSummary.total_pnl_percent ?? null}
             />
           </Grid>
         )}
