@@ -47,6 +47,10 @@ class StockService extends ApiService {
   async getAlerts() {
     return this.request("get", "favorites/alerts");
   }
+
+  async getPriceHistory(ticker, days = 90) {
+    return this.request("get", `stock/${ticker.toUpperCase()}/history?days=${days}`);
+  }
 }
 
 const stockServiceInstance = new StockService();

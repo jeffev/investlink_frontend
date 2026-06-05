@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StockService from "../services/stock.service";
+import PriceChart from "../components/PriceChart";
 
 function formatValue(value, format) {
   if (value === null || value === undefined) return "—";
@@ -331,6 +332,9 @@ const AcaoDetalhe = () => {
           </Typography>
         </Box>
       </Box>
+
+      {/* Price History Chart */}
+      <PriceChart ticker={stock.ticker} initialDays={90} />
 
       {/* ML + Targets row */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
