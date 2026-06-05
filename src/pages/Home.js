@@ -46,7 +46,7 @@ function SummaryCard({ label, value, color }) {
   );
 }
 
-function PortfolioCard({ summary }) {
+function PortfolioCard({ summary, projectedMonthly }) {
   return (
     <Card variant="outlined">
       <CardHeader
@@ -76,6 +76,13 @@ function PortfolioCard({ summary }) {
             }
             color={summary.total_pnl_percent >= 0 ? "success.main" : "error.main"}
           />
+          {projectedMonthly != null && (
+            <SummaryCard
+              label="Renda Mensal Projetada"
+              value={formatBRL(projectedMonthly)}
+              color="success.main"
+            />
+          )}
         </Grid>
       </CardContent>
     </Card>
@@ -252,6 +259,7 @@ function TopPicksCard({ picks, loading }) {
 
 const Home = () => {
   const [portfolioSummary, setPortfolioSummary] = useState(null);
+  const [projectedIncome, setProjectedIncome] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [topPicks, setTopPicks] = useState([]);
   const [alerts, setAlerts] = useState([]);
@@ -267,6 +275,10 @@ const Home = () => {
       })
       .catch(() => {})
       .finally(() => setLoadingPortfolio(false));
+
+    PortfolioService.getProjectedIncome()
+      .then((data) => setProjectedIncome(data))
+      .catch(() => {});
 
     StockService.getFavorites()
       .then(setFavorites)
@@ -307,7 +319,10 @@ const Home = () => {
         )}
         {portfolioSummary && (
           <Grid item xs={12}>
-            <PortfolioCard summary={portfolioSummary} />
+            <PortfolioCard
+              summary={portfolioSummary}
+              projectedMonthly={projectedIncome?.monthly ?? null}
+            />
           </Grid>
         )}
         <Grid item xs={12} md={6}>

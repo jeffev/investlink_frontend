@@ -14,6 +14,8 @@ import {
   DialogTitle,
   Grid,
   IconButton,
+  Tab,
+  Tabs,
   TextField,
   Tooltip,
   Typography,
@@ -32,36 +34,43 @@ const formatCurrency = (value) => {
 
 const formatPercent = (value) => {
   if (value == null) return "—";
-  return `${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+  return `${value.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}%`;
 };
 
 const PnlCell = ({ value, formatter }) => (
-  <Box
-    component="span"
-    sx={{ color: value >= 0 ? "success.main" : "error.main" }}
-  >
+  <Box component="span" sx={{ color: value >= 0 ? "success.main" : "error.main" }}>
     {formatter(value)}
   </Box>
 );
 
-const SummaryCards = ({ summary }) => {
+const SummaryCards = ({ summary, projectedMonthly }) => {
   const cards = [
-    { label: "Total Investido", value: formatCurrency(summary.total_invested) },
-    { label: "Valor Atual", value: formatCurrency(summary.current_value) },
-    { label: "Resultado Total", value: formatCurrency(summary.total_pnl) },
-    { label: "Rentabilidade", value: formatPercent(summary.total_pnl_percent) },
+    { label: "Total Investido (Ações)", value: formatCurrency(summary?.total_invested) },
+    { label: "Valor Atual (Ações)", value: formatCurrency(summary?.current_value) },
+    { label: "Resultado Total", value: formatCurrency(summary?.total_pnl) },
+    { label: "Rentabilidade", value: formatPercent(summary?.total_pnl_percent) },
+    {
+      label: "Renda Mensal Projetada",
+      value: formatCurrency(projectedMonthly),
+      color: "success.main",
+    },
   ];
 
   return (
     <Grid container spacing={2} sx={{ mb: 2 }}>
       {cards.map((card) => (
-        <Grid item xs={12} sm={6} md={3} key={card.label}>
+        <Grid item xs={12} sm={6} md={card.label === "Renda Mensal Projetada" ? 4 : 3} key={card.label}>
           <Card variant="outlined">
             <CardContent>
               <Typography variant="body2" color="text.secondary">
                 {card.label}
               </Typography>
-              <Typography variant="h6">{card.value}</Typography>
+              <Typography variant="h6" sx={{ color: card.color || "inherit" }}>
+                {card.value}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -70,25 +79,24 @@ const SummaryCards = ({ summary }) => {
   );
 };
 
-const EMPTY_FORM = { ticker: "", quantity: "", average_price: "" };
+const EMPTY_STOCK_FORM = { ticker: "", quantity: "", average_price: "" };
+const EMPTY_FII_FORM = { fii_ticker: "", quantity: "", average_price: "" };
 
 const AddPositionModal = ({ open, onClose, onAdd, loading }) => {
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_STOCK_FORM);
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
 
-  const handleSubmit = () => {
+  const handleSubmit = () =>
     onAdd({
       ticker: form.ticker.trim().toUpperCase(),
       quantity: Number(form.quantity),
       average_price: Number(form.average_price),
     });
-  };
 
   const handleClose = () => {
-    setForm(EMPTY_FORM);
+    setForm(EMPTY_STOCK_FORM);
     onClose();
   };
 
@@ -99,7 +107,7 @@ const AddPositionModal = ({ open, onClose, onAdd, loading }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Adicionar posição</DialogTitle>
+      <DialogTitle>Adicionar ação</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
         <TextField
           label="Ticker"
@@ -130,11 +138,71 @@ const AddPositionModal = ({ open, onClose, onAdd, loading }) => {
         <Button onClick={handleClose} disabled={loading}>
           Cancelar
         </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={!isValid || loading}
-        >
+        <Button onClick={handleSubmit} variant="contained" disabled={!isValid || loading}>
+          Adicionar
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+const AddFiiPositionModal = ({ open, onClose, onAdd, loading }) => {
+  const [form, setForm] = useState(EMPTY_FII_FORM);
+
+  const handleChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = () =>
+    onAdd({
+      fii_ticker: form.fii_ticker.trim().toUpperCase(),
+      quantity: Number(form.quantity),
+      average_price: Number(form.average_price),
+    });
+
+  const handleClose = () => {
+    setForm(EMPTY_FII_FORM);
+    onClose();
+  };
+
+  const isValid =
+    form.fii_ticker.trim() !== "" &&
+    Number(form.quantity) > 0 &&
+    Number(form.average_price) > 0;
+
+  return (
+    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
+      <DialogTitle>Adicionar FII</DialogTitle>
+      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+        <TextField
+          label="Ticker (ex: KNRI11)"
+          name="fii_ticker"
+          value={form.fii_ticker}
+          onChange={handleChange}
+          autoFocus
+          inputProps={{ style: { textTransform: "uppercase" } }}
+        />
+        <TextField
+          label="Quantidade de cotas"
+          name="quantity"
+          type="number"
+          value={form.quantity}
+          onChange={handleChange}
+          inputProps={{ min: 1 }}
+        />
+        <TextField
+          label="Preço médio (R$)"
+          name="average_price"
+          type="number"
+          value={form.average_price}
+          onChange={handleChange}
+          inputProps={{ min: 0, step: "0.01" }}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} disabled={loading}>
+          Cancelar
+        </Button>
+        <Button onClick={handleSubmit} variant="contained" disabled={!isValid || loading}>
           Adicionar
         </Button>
       </DialogActions>
@@ -144,34 +212,22 @@ const AddPositionModal = ({ open, onClose, onAdd, loading }) => {
 
 const Portfolio = () => {
   const [positions, setPositions] = useState([]);
+  const [fiiPositions, setFiiPositions] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [projectedIncome, setProjectedIncome] = useState(null);
+  const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [addFiiModalOpen, setAddFiiModalOpen] = useState(false);
   const [snackbar, setSnackbar] = useState(null);
 
   const handleCloseSnackbar = () => setSnackbar(null);
 
-  const columns = useMemo(
+  const stockColumns = useMemo(
     () => [
-      {
-        accessorKey: "id",
-        header: "ID",
-        size: 60,
-        enableEditing: false,
-        Edit: () => null,
-      },
-      {
-        accessorKey: "ticker",
-        header: "Ticker",
-        size: 90,
-        enableEditing: false,
-      },
-      {
-        accessorKey: "quantity",
-        header: "Qtd",
-        size: 80,
-        enableEditing: false,
-      },
+      { accessorKey: "id", header: "ID", size: 60, enableEditing: false, Edit: () => null },
+      { accessorKey: "ticker", header: "Ticker", size: 90, enableEditing: false },
+      { accessorKey: "quantity", header: "Qtd", size: 80, enableEditing: false },
       {
         accessorKey: "average_price",
         header: "Preço Médio",
@@ -206,17 +262,77 @@ const Portfolio = () => {
         header: "Resultado (R$)",
         size: 130,
         enableEditing: false,
-        Cell: ({ cell }) => (
-          <PnlCell value={cell.getValue()} formatter={formatCurrency} />
-        ),
+        Cell: ({ cell }) => <PnlCell value={cell.getValue()} formatter={formatCurrency} />,
       },
       {
         accessorKey: "pnl_percent",
         header: "Rentabilidade (%)",
         size: 140,
         enableEditing: false,
+        Cell: ({ cell }) => <PnlCell value={cell.getValue()} formatter={formatPercent} />,
+      },
+    ],
+    []
+  );
+
+  const fiiColumns = useMemo(
+    () => [
+      { accessorKey: "id", header: "ID", size: 60, enableEditing: false, Edit: () => null },
+      { accessorKey: "fii_ticker", header: "Ticker", size: 90, enableEditing: false },
+      { accessorKey: "companyname", header: "Fundo", size: 180, enableEditing: false },
+      { accessorKey: "quantity", header: "Cotas", size: 80, enableEditing: false },
+      {
+        accessorKey: "average_price",
+        header: "Preço Médio",
+        size: 120,
+        enableEditing: true,
+        muiEditTextFieldProps: { type: "number" },
+        Cell: ({ cell }) => formatCurrency(cell.getValue()),
+      },
+      {
+        accessorKey: "current_price",
+        header: "Preço Atual",
+        size: 120,
+        enableEditing: false,
+        Cell: ({ cell }) => formatCurrency(cell.getValue()),
+      },
+      {
+        accessorKey: "total_invested",
+        header: "Total Investido",
+        size: 130,
+        enableEditing: false,
+        Cell: ({ cell }) => formatCurrency(cell.getValue()),
+      },
+      {
+        accessorKey: "current_value",
+        header: "Valor Atual",
+        size: 120,
+        enableEditing: false,
+        Cell: ({ cell }) => formatCurrency(cell.getValue()),
+      },
+      {
+        accessorKey: "pnl",
+        header: "Resultado (R$)",
+        size: 130,
+        enableEditing: false,
+        Cell: ({ cell }) => <PnlCell value={cell.getValue()} formatter={formatCurrency} />,
+      },
+      {
+        accessorKey: "pnl_percent",
+        header: "Rentabilidade (%)",
+        size: 140,
+        enableEditing: false,
+        Cell: ({ cell }) => <PnlCell value={cell.getValue()} formatter={formatPercent} />,
+      },
+      {
+        accessorKey: "monthly_income",
+        header: "Renda Mensal",
+        size: 130,
+        enableEditing: false,
         Cell: ({ cell }) => (
-          <PnlCell value={cell.getValue()} formatter={formatPercent} />
+          <Box component="span" sx={{ color: "success.main" }}>
+            {formatCurrency(cell.getValue())}
+          </Box>
         ),
       },
     ],
@@ -226,14 +342,15 @@ const Portfolio = () => {
   const fetchPortfolio = async () => {
     setLoading(true);
     try {
-      const [data, summaryData] = await Promise.all([
+      const [data, summaryData, fiiData] = await Promise.all([
         PortfolioService.getPortfolio(),
         PortfolioService.getPortfolioSummary(),
+        PortfolioService.getFiiPortfolio(),
       ]);
       setPositions(data);
       setSummary(summaryData);
+      setFiiPositions(fiiData);
     } catch (error) {
-      console.error(error);
       setSnackbar({ children: "Erro ao carregar portfólio!", severity: "error" });
     } finally {
       setLoading(false);
@@ -244,25 +361,20 @@ const Portfolio = () => {
     fetchPortfolio();
   }, []);
 
+  useEffect(() => {
+    PortfolioService.getProjectedIncome()
+      .then((data) => setProjectedIncome(data))
+      .catch(() => {});
+  }, [positions, fiiPositions]);
+
   const handleEditPosition = async (newRow) => {
     try {
       setLoading(true);
-      await PortfolioService.editPosition(
-        newRow.row.original.id,
-        newRow.row._valuesCache
-      );
-
-      const updated = positions.map((pos) => {
-        if (pos.id === newRow.row.original.id) {
-          return { ...pos, ...newRow.row._valuesCache };
-        }
-        return pos;
-      });
-
-      setPositions(updated);
-      table.setEditingRow(null);
+      await PortfolioService.editPosition(newRow.row.original.id, newRow.row._valuesCache);
+      await fetchPortfolio();
+      stockTable.setEditingRow(null);
       setSnackbar({ children: "Posição editada com sucesso!", severity: "success" });
-    } catch (error) {
+    } catch {
       setSnackbar({ children: "Erro ao editar posição!", severity: "error" });
     } finally {
       setLoading(false);
@@ -273,9 +385,9 @@ const Portfolio = () => {
     try {
       setLoading(true);
       await PortfolioService.deletePosition(positionId);
-      setPositions(positions.filter((pos) => pos.id !== positionId));
+      await fetchPortfolio();
       setSnackbar({ children: "Posição removida com sucesso!", severity: "success" });
-    } catch (error) {
+    } catch {
       setSnackbar({ children: "Erro ao remover posição!", severity: "error" });
     } finally {
       setLoading(false);
@@ -289,28 +401,71 @@ const Portfolio = () => {
       setAddModalOpen(false);
       await fetchPortfolio();
       setSnackbar({ children: "Posição adicionada com sucesso!", severity: "success" });
-    } catch (error) {
+    } catch {
       setSnackbar({ children: "Erro ao adicionar posição!", severity: "error" });
     } finally {
       setLoading(false);
     }
   };
 
-  const table = useMaterialReactTable({
-    columns,
-    data: positions,
+  const handleEditFiiPosition = async (newRow) => {
+    try {
+      setLoading(true);
+      await PortfolioService.editFiiPosition(newRow.row.original.id, newRow.row._valuesCache);
+      await fetchPortfolio();
+      fiiTable.setEditingRow(null);
+      setSnackbar({ children: "Posição FII editada com sucesso!", severity: "success" });
+    } catch {
+      setSnackbar({ children: "Erro ao editar posição FII!", severity: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteFiiPosition = async (positionId) => {
+    try {
+      setLoading(true);
+      await PortfolioService.deleteFiiPosition(positionId);
+      await fetchPortfolio();
+      setSnackbar({ children: "Posição FII removida com sucesso!", severity: "success" });
+    } catch {
+      setSnackbar({ children: "Erro ao remover posição FII!", severity: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddFiiPosition = async (data) => {
+    try {
+      setLoading(true);
+      await PortfolioService.addFiiPosition(data);
+      setAddFiiModalOpen(false);
+      await fetchPortfolio();
+      setSnackbar({ children: "FII adicionado com sucesso!", severity: "success" });
+    } catch {
+      setSnackbar({ children: "Erro ao adicionar FII!", severity: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const tableCommonOptions = {
     enableEditing: true,
     enableColumnFilterModes: true,
     enableColumnOrdering: true,
     enableColumnResizing: true,
     columnFilterDisplayMode: "popover",
     layoutMode: "grid",
-    displayColumnDefOptions: {
-      "mrt-row-actions": {
-        size: 90,
-        grow: false,
-      },
-    },
+    displayColumnDefOptions: { "mrt-row-actions": { size: 90, grow: false } },
+    localization: MRT_Localization_PT_BR,
+    initialState: { pagination: { pageSize: 15 }, density: "compact", columnVisibility: { id: false } },
+  };
+
+  const stockTable = useMaterialReactTable({
+    ...tableCommonOptions,
+    columns: stockColumns,
+    data: positions,
+    onEditingRowSave: handleEditPosition,
     renderRowActions: ({ row, table }) => (
       <Box sx={{ display: "flex", gap: "1rem" }}>
         <Tooltip title="Editar">
@@ -319,23 +474,12 @@ const Portfolio = () => {
           </IconButton>
         </Tooltip>
         <Tooltip title="Remover">
-          <IconButton
-            color="error"
-            onClick={() => handleDeletePosition(row.original.id)}
-          >
+          <IconButton color="error" onClick={() => handleDeletePosition(row.original.id)}>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
       </Box>
     ),
-    editDisplayMode: "modal",
-    localization: MRT_Localization_PT_BR,
-    onEditingRowSave: handleEditPosition,
-    initialState: {
-      pagination: { pageSize: 15 },
-      density: "compact",
-      columnVisibility: { id: false },
-    },
     renderTopToolbarCustomActions: () => (
       <Button
         color="primary"
@@ -343,7 +487,38 @@ const Portfolio = () => {
         startIcon={<AddIcon />}
         variant="contained"
       >
-        Adicionar posição
+        Adicionar ação
+      </Button>
+    ),
+  });
+
+  const fiiTable = useMaterialReactTable({
+    ...tableCommonOptions,
+    columns: fiiColumns,
+    data: fiiPositions,
+    onEditingRowSave: handleEditFiiPosition,
+    renderRowActions: ({ row, table }) => (
+      <Box sx={{ display: "flex", gap: "1rem" }}>
+        <Tooltip title="Editar">
+          <IconButton onClick={() => table.setEditingRow(row)}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Remover">
+          <IconButton color="error" onClick={() => handleDeleteFiiPosition(row.original.id)}>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    ),
+    renderTopToolbarCustomActions: () => (
+      <Button
+        color="primary"
+        onClick={() => setAddFiiModalOpen(true)}
+        startIcon={<AddIcon />}
+        variant="contained"
+      >
+        Adicionar FII
       </Button>
     ),
   });
@@ -356,28 +531,67 @@ const Portfolio = () => {
         Minha Carteira
       </Typography>
 
-      {summary && <SummaryCards summary={summary} />}
+      <SummaryCards
+        summary={summary}
+        projectedMonthly={projectedIncome?.monthly ?? null}
+      />
 
-      {positions.length === 0 && !loading ? (
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
-          <Typography variant="body1">Nenhuma posição encontrada.</Typography>
-          <Button
-            color="primary"
-            onClick={() => setAddModalOpen(true)}
-            startIcon={<AddIcon />}
-            variant="contained"
-          >
-            Adicionar posição
-          </Button>
-        </Box>
-      ) : (
-        <MaterialReactTable table={table} />
+      <Tabs
+        value={activeTab}
+        onChange={(_, newValue) => setActiveTab(newValue)}
+        sx={{ mb: 2, borderBottom: 1, borderColor: "divider" }}
+      >
+        <Tab label={`Ações (${positions.length})`} />
+        <Tab label={`FIIs (${fiiPositions.length})`} />
+      </Tabs>
+
+      {activeTab === 0 && (
+        positions.length === 0 && !loading ? (
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+            <Typography variant="body1">Nenhuma posição em ações.</Typography>
+            <Button
+              color="primary"
+              onClick={() => setAddModalOpen(true)}
+              startIcon={<AddIcon />}
+              variant="contained"
+            >
+              Adicionar ação
+            </Button>
+          </Box>
+        ) : (
+          <MaterialReactTable table={stockTable} />
+        )
+      )}
+
+      {activeTab === 1 && (
+        fiiPositions.length === 0 && !loading ? (
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+            <Typography variant="body1">Nenhum FII na carteira.</Typography>
+            <Button
+              color="primary"
+              onClick={() => setAddFiiModalOpen(true)}
+              startIcon={<AddIcon />}
+              variant="contained"
+            >
+              Adicionar FII
+            </Button>
+          </Box>
+        ) : (
+          <MaterialReactTable table={fiiTable} />
+        )
       )}
 
       <AddPositionModal
         open={addModalOpen}
         onClose={() => setAddModalOpen(false)}
         onAdd={handleAddPosition}
+        loading={loading}
+      />
+
+      <AddFiiPositionModal
+        open={addFiiModalOpen}
+        onClose={() => setAddFiiModalOpen(false)}
+        onAdd={handleAddFiiPosition}
         loading={loading}
       />
 
