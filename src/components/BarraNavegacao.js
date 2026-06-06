@@ -19,8 +19,7 @@ import {
   FavoriteOutlined,
   SentimentSatisfiedOutlined,
   AccountBalanceWalletOutlined,
-  HelpOutlineOutlined,
-  PsychologyOutlined,
+  MenuBookOutlined,
   AdminPanelSettingsOutlined,
   AccountCircleOutlined,
   CompareArrowsOutlined,
@@ -119,13 +118,9 @@ function BarraNavegacao({ check, change }) {
               <ListItemIcon><StarOutlined /></ListItemIcon>
               <ListItemText primary="Favoritas" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/glossario-acoes">
-              <ListItemIcon><HelpOutlineOutlined /></ListItemIcon>
-              <ListItemText primary="Glossário de ações" />
-            </ListItemButton>
-            <ListItemButton component={Link} to="/explicacao-ml">
-              <ListItemIcon><PsychologyOutlined /></ListItemIcon>
-              <ListItemText primary="Análise por IA" />
+            <ListItemButton component={Link} to="/guias">
+              <ListItemIcon><MenuBookOutlined /></ListItemIcon>
+              <ListItemText primary="Guias" />
             </ListItemButton>
             <Divider />
             <ListItemButton component={Link} to="/listaFiis">
@@ -135,10 +130,6 @@ function BarraNavegacao({ check, change }) {
             <ListItemButton component={Link} to="/favoritosFiis">
               <ListItemIcon><FavoriteOutlined /></ListItemIcon>
               <ListItemText primary="FIIs favoritos" />
-            </ListItemButton>
-            <ListItemButton component={Link} to="/glossario-fiis">
-              <ListItemIcon><HelpOutlineOutlined /></ListItemIcon>
-              <ListItemText primary="Glossário de FIIs" />
             </ListItemButton>
             <Divider />
             <ListItemButton component={Link} to="/sentimento">
