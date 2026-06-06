@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -6,25 +6,9 @@ import {
 import {
   Box,
   Button,
-  Card,
-  CardContent,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
   IconButton,
-  LinearProgress,
-  Slider,
   Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Tabs,
-  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -34,699 +18,30 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import PortfolioService from "../services/portfolio.service";
 import { LoadingBackdrop, FeedbackSnackbar } from "../components/Common/FeedbackUI";
-import DonutChart, { buildSectors } from "../components/ConcentrationChart";
 import BenchmarkBar from "../components/BenchmarkBar";
+import SummaryCards from "../components/Portfolio/SummaryCards";
+import AddPositionModal from "../components/Portfolio/AddPositionModal";
+import AddFiiPositionModal from "../components/Portfolio/AddFiiPositionModal";
+import RebalanceTab from "../components/Portfolio/RebalanceTab";
+import ConcentrationTab from "../components/Portfolio/ConcentrationTab";
+import HistoricoTab from "../components/Portfolio/HistoricoTab";
+import { formatCurrency, formatPercent, PnlCell } from "../utils/portfolioFormatters";
 
-const formatCurrency = (value) => {
-  if (value == null) return "—";
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const TABLE_COMMON_OPTIONS = {
+  enableEditing: true,
+  enableColumnFilterModes: true,
+  enableColumnOrdering: true,
+  enableColumnResizing: true,
+  columnFilterDisplayMode: "popover",
+  layoutMode: "grid",
+  displayColumnDefOptions: { "mrt-row-actions": { size: 90, grow: false } },
+  localization: MRT_Localization_PT_BR,
+  initialState: {
+    pagination: { pageSize: 15 },
+    density: "compact",
+    columnVisibility: { id: false },
+  },
 };
-
-const formatPercent = (value) => {
-  if (value == null) return "—";
-  return `${value.toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}%`;
-};
-
-const PnlCell = ({ value, formatter }) => (
-  <Box component="span" sx={{ color: value >= 0 ? "success.main" : "error.main" }}>
-    {formatter(value)}
-  </Box>
-);
-
-const SummaryCards = ({ summary, projectedMonthly }) => {
-  const cards = [
-    { label: "Total Investido (Ações)", value: formatCurrency(summary?.total_invested) },
-    { label: "Valor Atual (Ações)", value: formatCurrency(summary?.current_value) },
-    { label: "Resultado Total", value: formatCurrency(summary?.total_pnl) },
-    { label: "Rentabilidade", value: formatPercent(summary?.total_pnl_percent) },
-    {
-      label: "Renda Mensal Projetada",
-      value: formatCurrency(projectedMonthly),
-      color: "success.main",
-    },
-  ];
-
-  return (
-    <Grid container spacing={2} sx={{ mb: 2 }}>
-      {cards.map((card) => (
-        <Grid item xs={12} sm={6} md={card.label === "Renda Mensal Projetada" ? 4 : 3} key={card.label}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                {card.label}
-              </Typography>
-              <Typography variant="h6" sx={{ color: card.color || "inherit" }}>
-                {card.value}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
-  );
-};
-
-const EMPTY_STOCK_FORM = { ticker: "", quantity: "", average_price: "" };
-const EMPTY_FII_FORM = { fii_ticker: "", quantity: "", average_price: "" };
-
-const AddPositionModal = ({ open, onClose, onAdd, loading }) => {
-  const [form, setForm] = useState(EMPTY_STOCK_FORM);
-
-  const handleChange = (e) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-
-  const handleSubmit = () =>
-    onAdd({
-      ticker: form.ticker.trim().toUpperCase(),
-      quantity: Number(form.quantity),
-      average_price: Number(form.average_price),
-    });
-
-  const handleClose = () => {
-    setForm(EMPTY_STOCK_FORM);
-    onClose();
-  };
-
-  const isValid =
-    form.ticker.trim() !== "" &&
-    Number(form.quantity) > 0 &&
-    Number(form.average_price) > 0;
-
-  return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Adicionar ação</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-        <TextField
-          label="Ticker"
-          name="ticker"
-          value={form.ticker}
-          onChange={handleChange}
-          autoFocus
-          inputProps={{ style: { textTransform: "uppercase" } }}
-        />
-        <TextField
-          label="Quantidade"
-          name="quantity"
-          type="number"
-          value={form.quantity}
-          onChange={handleChange}
-          inputProps={{ min: 1 }}
-        />
-        <TextField
-          label="Preço médio (R$)"
-          name="average_price"
-          type="number"
-          value={form.average_price}
-          onChange={handleChange}
-          inputProps={{ min: 0, step: "0.01" }}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
-          Cancelar
-        </Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={!isValid || loading}>
-          Adicionar
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-const AddFiiPositionModal = ({ open, onClose, onAdd, loading }) => {
-  const [form, setForm] = useState(EMPTY_FII_FORM);
-
-  const handleChange = (e) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-
-  const handleSubmit = () =>
-    onAdd({
-      fii_ticker: form.fii_ticker.trim().toUpperCase(),
-      quantity: Number(form.quantity),
-      average_price: Number(form.average_price),
-    });
-
-  const handleClose = () => {
-    setForm(EMPTY_FII_FORM);
-    onClose();
-  };
-
-  const isValid =
-    form.fii_ticker.trim() !== "" &&
-    Number(form.quantity) > 0 &&
-    Number(form.average_price) > 0;
-
-  return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Adicionar FII</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-        <TextField
-          label="Ticker (ex: KNRI11)"
-          name="fii_ticker"
-          value={form.fii_ticker}
-          onChange={handleChange}
-          autoFocus
-          inputProps={{ style: { textTransform: "uppercase" } }}
-        />
-        <TextField
-          label="Quantidade de cotas"
-          name="quantity"
-          type="number"
-          value={form.quantity}
-          onChange={handleChange}
-          inputProps={{ min: 1 }}
-        />
-        <TextField
-          label="Preço médio (R$)"
-          name="average_price"
-          type="number"
-          value={form.average_price}
-          onChange={handleChange}
-          inputProps={{ min: 0, step: "0.01" }}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
-          Cancelar
-        </Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={!isValid || loading}>
-          Adicionar
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-const LS_KEY = "portfolioTargetAllocation";
-
-function loadTargetFromStorage() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (typeof parsed.targetStocks === "number") return parsed.targetStocks;
-    }
-  } catch {}
-  return 60;
-}
-
-function AllocationBar({ label, currentPct, targetPct }) {
-  const deviation = currentPct - targetPct;
-  const isOver = deviation > 0;
-  const color = Math.abs(deviation) <= 2 ? "success" : isOver ? "error" : "warning";
-
-  return (
-    <Box sx={{ mb: 2 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-        <Typography variant="body2" fontWeight={600}>{label}</Typography>
-        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <Typography variant="body2" color="text.secondary">
-            atual {currentPct.toFixed(1)}% / alvo {targetPct.toFixed(0)}%
-          </Typography>
-          <Chip
-            label={`${deviation >= 0 ? "+" : ""}${deviation.toFixed(1)}%`}
-            color={color}
-            size="small"
-          />
-        </Box>
-      </Box>
-      <Box sx={{ position: "relative", height: 10, borderRadius: 1, bgcolor: "action.hover" }}>
-        <Box
-          sx={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            height: "100%",
-            borderRadius: 1,
-            width: `${Math.min(currentPct, 100)}%`,
-            bgcolor: `${color}.main`,
-            transition: "width 0.3s ease",
-          }}
-        />
-        <Box
-          sx={{
-            position: "absolute",
-            top: -3,
-            left: `${Math.min(targetPct, 100)}%`,
-            height: 16,
-            width: 2,
-            bgcolor: "text.primary",
-            borderRadius: 1,
-          }}
-        />
-      </Box>
-      <LinearProgress sx={{ display: "none" }} />
-    </Box>
-  );
-}
-
-function RebalanceTab({ positions, fiiPositions }) {
-  const [targetStocks, setTargetStocks] = useState(loadTargetFromStorage);
-
-  const targetFiis = 100 - targetStocks;
-
-  const totalStocksValue = positions.reduce((s, p) => s + (p.current_value || 0), 0);
-  const totalFiisValue = fiiPositions.reduce((s, p) => s + (p.current_value || 0), 0);
-  const totalValue = totalStocksValue + totalFiisValue;
-
-  const currentStocksPct = totalValue > 0 ? (totalStocksValue / totalValue) * 100 : 0;
-  const currentFiisPct = totalValue > 0 ? (totalFiisValue / totalValue) * 100 : 0;
-
-  const deviationStocks = currentStocksPct - targetStocks;
-  const amountToRebalance = Math.abs((deviationStocks / 100) * totalValue);
-
-  const handleSliderChange = (_, value) => {
-    setTargetStocks(value);
-    localStorage.setItem(LS_KEY, JSON.stringify({ targetStocks: value }));
-  };
-
-  // Sector breakdown within stocks
-  const sectors = Object.entries(
-    positions.reduce((acc, p) => {
-      const sector = p.sectorname || "Outros";
-      acc[sector] = (acc[sector] || 0) + (p.current_value || 0);
-      return acc;
-    }, {})
-  )
-    .sort((a, b) => b[1] - a[1])
-    .map(([name, value]) => ({
-      name,
-      value,
-      pct: totalStocksValue > 0 ? (value / totalStocksValue) * 100 : 0,
-    }));
-
-  if (totalValue === 0) {
-    return (
-      <Box sx={{ py: 4, textAlign: "center" }}>
-        <Typography color="text.secondary">
-          Adicione posições em ações ou FIIs para ver o rebalanceamento.
-        </Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <Box>
-      {/* Alocação Ações vs FIIs */}
-      <Card variant="outlined" sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-            Alocação: Ações vs FIIs
-          </Typography>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-            <Typography variant="body2" sx={{ minWidth: 60 }}>Ações {targetStocks}%</Typography>
-            <Slider
-              value={targetStocks}
-              onChange={handleSliderChange}
-              min={0}
-              max={100}
-              step={5}
-              valueLabelDisplay="auto"
-              valueLabelFormat={(v) => `Ações ${v}% / FIIs ${100 - v}%`}
-              sx={{ flex: 1 }}
-            />
-            <Typography variant="body2" sx={{ minWidth: 60, textAlign: "right" }}>
-              FIIs {targetFiis}%
-            </Typography>
-          </Box>
-
-          <AllocationBar
-            label="Ações"
-            currentPct={currentStocksPct}
-            targetPct={targetStocks}
-          />
-          <AllocationBar
-            label="FIIs"
-            currentPct={currentFiisPct}
-            targetPct={targetFiis}
-          />
-
-          {Math.abs(deviationStocks) > 2 && (
-            <Box
-              sx={{
-                mt: 2,
-                p: 1.5,
-                borderRadius: 1,
-                bgcolor: "action.hover",
-                borderLeft: 4,
-                borderColor: deviationStocks > 0 ? "error.main" : "warning.main",
-              }}
-            >
-              <Typography variant="body2">
-                {deviationStocks > 0 ? (
-                  <>
-                    <strong>Ações</strong> está {deviationStocks.toFixed(1)}% acima do alvo
-                    ({formatCurrency(amountToRebalance)} a mais).{" "}
-                    <strong>Sugestão:</strong> aporte {formatCurrency(amountToRebalance)} em FIIs.
-                  </>
-                ) : (
-                  <>
-                    <strong>FIIs</strong> está {Math.abs(deviationStocks).toFixed(1)}% acima do alvo
-                    ({formatCurrency(amountToRebalance)} a mais).{" "}
-                    <strong>Sugestão:</strong> aporte {formatCurrency(amountToRebalance)} em Ações.
-                  </>
-                )}
-              </Typography>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Concentração por Setor */}
-      {sectors.length > 0 && (
-        <Card variant="outlined">
-          <CardContent>
-            <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-              Concentração por Setor (Ações)
-            </Typography>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Setor</TableCell>
-                  <TableCell align="right">Valor</TableCell>
-                  <TableCell align="right">% das Ações</TableCell>
-                  <TableCell sx={{ width: "35%" }}></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {sectors.map(({ name, value, pct }) => (
-                  <TableRow key={name}>
-                    <TableCell>{name}</TableCell>
-                    <TableCell align="right">{formatCurrency(value)}</TableCell>
-                    <TableCell align="right">{pct.toFixed(1)}%</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Box
-                          sx={{
-                            flex: 1,
-                            height: 8,
-                            borderRadius: 1,
-                            bgcolor: "action.hover",
-                            position: "relative",
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              left: 0,
-                              top: 0,
-                              height: "100%",
-                              borderRadius: 1,
-                              width: `${pct}%`,
-                              bgcolor: pct > 40 ? "error.main" : pct > 25 ? "warning.main" : "primary.main",
-                              transition: "width 0.3s ease",
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
-    </Box>
-  );
-}
-
-const CONCENTRATION_THRESHOLD = 40;
-
-function ConcentrationTab({ positions, fiiPositions }) {
-  const stockSectors = buildSectors(positions);
-  const fiiSectors = buildSectors(fiiPositions);
-
-  const stockAlerts = stockSectors.filter((s) => s.pct > CONCENTRATION_THRESHOLD);
-  const fiiAlerts = fiiSectors.filter((s) => s.pct > CONCENTRATION_THRESHOLD);
-
-  const hasData = positions.length > 0 || fiiPositions.length > 0;
-
-  if (!hasData) {
-    return (
-      <Box sx={{ py: 4, textAlign: "center" }}>
-        <Typography color="text.secondary">
-          Adicione posições para ver a análise de concentração.
-        </Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <Box>
-      {/* Alertas */}
-      {(stockAlerts.length > 0 || fiiAlerts.length > 0) && (
-        <Card
-          variant="outlined"
-          sx={{ mb: 2, borderColor: "error.main", bgcolor: "error.50" }}
-        >
-          <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
-            <Typography variant="body2" fontWeight={700} color="error.main" sx={{ mb: 0.5 }}>
-              ⚠ Concentração excessiva (&gt;{CONCENTRATION_THRESHOLD}%)
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              {stockAlerts.map((s) => (
-                <Chip
-                  key={`stock-${s.name}`}
-                  label={`Ações / ${s.name}: ${s.pct.toFixed(1)}%`}
-                  color="error"
-                  size="small"
-                />
-              ))}
-              {fiiAlerts.map((s) => (
-                <Chip
-                  key={`fii-${s.name}`}
-                  label={`FIIs / ${s.name}: ${s.pct.toFixed(1)}%`}
-                  color="error"
-                  size="small"
-                />
-              ))}
-            </Box>
-          </CardContent>
-        </Card>
-      )}
-
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-        {/* Ações por setor */}
-        {stockSectors.length > 0 && (
-          <Card variant="outlined" sx={{ flex: 1, minWidth: 280 }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-                Ações — por setor
-              </Typography>
-              <DonutChart sectors={stockSectors} totalLabel="Ações" />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* FIIs por segmento */}
-        {fiiSectors.length > 0 && (
-          <Card variant="outlined" sx={{ flex: 1, minWidth: 280 }}>
-            <CardContent>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-                FIIs — por segmento
-              </Typography>
-              <DonutChart sectors={fiiSectors} totalLabel="FIIs" />
-            </CardContent>
-          </Card>
-        )}
-      </Box>
-    </Box>
-  );
-}
-
-const TX_TYPES = ["COMPRA", "VENDA"];
-const TX_ASSET_TYPES = ["STOCK", "FII"];
-const EMPTY_TX_FORM = { ticker: "", type: "COMPRA", asset_type: "STOCK", quantity: "", price: "", date: new Date().toISOString().slice(0, 10) };
-
-function HistoricoTab() {
-  const [transactions, setTransactions] = useState([]);
-  const [summary, setSummary] = useState({ total_compras: 0, total_vendas: 0, resultado_realizado: 0 });
-  const [loading, setLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState(EMPTY_TX_FORM);
-  const [snackbar, setSnackbar] = useState(null);
-
-  const fetchTransactions = () => {
-    setLoading(true);
-    PortfolioService.getTransactions()
-      .then((res) => { setTransactions(res.data || []); setSummary(res.summary || {}); })
-      .catch(() => setSnackbar({ children: "Erro ao carregar transações!", severity: "error" }))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => { fetchTransactions(); }, []);
-
-  const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-
-  const handleAdd = async () => {
-    setLoading(true);
-    try {
-      await PortfolioService.createTransaction({
-        ...form,
-        quantity: Number(form.quantity),
-        price: Number(form.price),
-      });
-      setModalOpen(false);
-      setForm(EMPTY_TX_FORM);
-      fetchTransactions();
-      setSnackbar({ children: "Transação registrada!", severity: "success" });
-    } catch {
-      setSnackbar({ children: "Erro ao registrar transação!", severity: "error" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    setLoading(true);
-    try {
-      await PortfolioService.deleteTransaction(id);
-      fetchTransactions();
-      setSnackbar({ children: "Transação removida!", severity: "success" });
-    } catch {
-      setSnackbar({ children: "Erro ao remover transação!", severity: "error" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const isFormValid =
-    form.ticker.trim() &&
-    TX_TYPES.includes(form.type) &&
-    Number(form.quantity) > 0 &&
-    Number(form.price) > 0 &&
-    form.date;
-
-  const resultColor = summary.resultado_realizado >= 0 ? "success.main" : "error.main";
-
-  return (
-    <Box>
-      <LoadingBackdrop open={loading} />
-
-      {/* Summary cards */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        {[
-          { label: "Total Compras", value: formatCurrency(summary.total_compras) },
-          { label: "Total Vendas", value: formatCurrency(summary.total_vendas) },
-          { label: "Resultado Realizado", value: formatCurrency(summary.resultado_realizado), color: resultColor },
-        ].map((c) => (
-          <Grid item xs={12} sm={4} key={c.label}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">{c.label}</Typography>
-                <Typography variant="h6" sx={{ color: c.color || "inherit" }}>{c.value}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setModalOpen(true)}>
-          Registrar transação
-        </Button>
-      </Box>
-
-      {/* Tabela */}
-      {transactions.length === 0 && !loading ? (
-        <Typography color="text.secondary" sx={{ py: 3, textAlign: "center" }}>
-          Nenhuma transação registrada.
-        </Typography>
-      ) : (
-        <Card variant="outlined">
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Data</TableCell>
-                <TableCell>Tipo</TableCell>
-                <TableCell>Ticker</TableCell>
-                <TableCell align="right">Qtd</TableCell>
-                <TableCell align="right">Preço</TableCell>
-                <TableCell align="right">Total</TableCell>
-                <TableCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {transactions.map((tx) => (
-                <TableRow key={tx.id} hover>
-                  <TableCell>{tx.date}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={tx.type}
-                      color={tx.type === "COMPRA" ? "success" : "error"}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>{tx.ticker}</TableCell>
-                  <TableCell align="right">{tx.quantity}</TableCell>
-                  <TableCell align="right">{formatCurrency(tx.price)}</TableCell>
-                  <TableCell align="right">{formatCurrency(tx.total)}</TableCell>
-                  <TableCell>
-                    <Tooltip title="Remover">
-                      <IconButton size="small" color="error" onClick={() => handleDelete(tx.id)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
-
-      {/* Modal de registro */}
-      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Registrar transação</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-          <TextField
-            select
-            label="Tipo"
-            name="type"
-            value={form.type}
-            onChange={handleChange}
-            SelectProps={{ native: true }}
-          >
-            {TX_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </TextField>
-          <TextField
-            select
-            label="Ativo"
-            name="asset_type"
-            value={form.asset_type}
-            onChange={handleChange}
-            SelectProps={{ native: true }}
-          >
-            {TX_ASSET_TYPES.map((t) => <option key={t} value={t}>{t === "STOCK" ? "Ação" : "FII"}</option>)}
-          </TextField>
-          <TextField
-            label="Ticker"
-            name="ticker"
-            value={form.ticker}
-            onChange={handleChange}
-            inputProps={{ style: { textTransform: "uppercase" } }}
-          />
-          <TextField label="Quantidade" name="quantity" type="number" value={form.quantity} onChange={handleChange} inputProps={{ min: 0, step: "any" }} />
-          <TextField label="Preço (R$)" name="price" type="number" value={form.price} onChange={handleChange} inputProps={{ min: 0, step: "0.01" }} />
-          <TextField label="Data" name="date" type="date" value={form.date} onChange={handleChange} InputLabelProps={{ shrink: true }} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalOpen(false)}>Cancelar</Button>
-          <Button variant="contained" onClick={handleAdd} disabled={!isFormValid || loading}>
-            Registrar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <FeedbackSnackbar snackbar={snackbar} onClose={() => setSnackbar(null)} />
-    </Box>
-  );
-}
 
 const Portfolio = () => {
   const [positions, setPositions] = useState([]);
@@ -739,8 +54,6 @@ const Portfolio = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addFiiModalOpen, setAddFiiModalOpen] = useState(false);
   const [snackbar, setSnackbar] = useState(null);
-
-  const handleCloseSnackbar = () => setSnackbar(null);
 
   const stockColumns = useMemo(
     () => [
@@ -869,7 +182,7 @@ const Portfolio = () => {
       setPositions(data);
       setSummary(summaryData);
       setFiiPositions(fiiData);
-    } catch (error) {
+    } catch {
       setSnackbar({ children: "Erro ao carregar portfólio!", severity: "error" });
     } finally {
       setLoading(false);
@@ -974,20 +287,8 @@ const Portfolio = () => {
     }
   };
 
-  const tableCommonOptions = {
-    enableEditing: true,
-    enableColumnFilterModes: true,
-    enableColumnOrdering: true,
-    enableColumnResizing: true,
-    columnFilterDisplayMode: "popover",
-    layoutMode: "grid",
-    displayColumnDefOptions: { "mrt-row-actions": { size: 90, grow: false } },
-    localization: MRT_Localization_PT_BR,
-    initialState: { pagination: { pageSize: 15 }, density: "compact", columnVisibility: { id: false } },
-  };
-
   const stockTable = useMaterialReactTable({
-    ...tableCommonOptions,
+    ...TABLE_COMMON_OPTIONS,
     columns: stockColumns,
     data: positions,
     onEditingRowSave: handleEditPosition,
@@ -1018,7 +319,7 @@ const Portfolio = () => {
   });
 
   const fiiTable = useMaterialReactTable({
-    ...tableCommonOptions,
+    ...TABLE_COMMON_OPTIONS,
     columns: fiiColumns,
     data: fiiPositions,
     onEditingRowSave: handleEditFiiPosition,
@@ -1056,15 +357,9 @@ const Portfolio = () => {
         Minha Carteira
       </Typography>
 
-      <SummaryCards
-        summary={summary}
-        projectedMonthly={projectedIncome?.monthly ?? null}
-      />
+      <SummaryCards summary={summary} projectedMonthly={projectedIncome?.monthly ?? null} />
 
-      <BenchmarkBar
-        benchmarks={benchmarks}
-        portfolioPct={summary?.total_pnl_percent ?? null}
-      />
+      <BenchmarkBar benchmarks={benchmarks} portfolioPct={summary?.total_pnl_percent ?? null} />
 
       <Tabs
         value={activeTab}
@@ -1138,7 +433,7 @@ const Portfolio = () => {
         loading={loading}
       />
 
-      <FeedbackSnackbar snackbar={snackbar} onClose={handleCloseSnackbar} />
+      <FeedbackSnackbar snackbar={snackbar} onClose={() => setSnackbar(null)} />
     </Box>
   );
 };
