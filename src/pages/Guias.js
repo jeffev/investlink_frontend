@@ -24,6 +24,7 @@ import {
   MenuBookOutlined,
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+import { PageContainer } from "../components/Common/PageLayout";
 
 const GUIAS_APP = [
   {
@@ -154,7 +155,7 @@ function CardGrid({ cards }) {
 
 export default function Guias() {
   return (
-    <Box sx={{ py: 3, maxWidth: 960, mx: 'auto' }}>
+    <PageContainer width="narrow">
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
         <MenuBookOutlined sx={{ fontSize: 32, color: 'primary.main' }} />
         <Typography variant="h4" fontWeight={700}>
@@ -199,6 +200,6 @@ export default function Guias() {
           Glossario de FIIs
         </Button>
       </Box>
-    </Box>
+    </PageContainer>
   );
 }

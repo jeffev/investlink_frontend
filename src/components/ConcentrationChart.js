@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { formatBRL } from "../utils/formatters";
 import { Box, Tooltip, Typography } from "@mui/material";
 
 const COLORS = [
@@ -52,9 +53,6 @@ function DonutChart({ sectors, totalLabel }) {
   const [hovered, setHovered] = useState(null);
   const slices = buildSlices(sectors);
 
-  const fmt = (v) =>
-    v?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) ?? "—";
-
   return (
     <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3, flexWrap: "wrap" }}>
       <Box sx={{ flexShrink: 0 }}>
@@ -62,7 +60,7 @@ function DonutChart({ sectors, totalLabel }) {
           {slices.map((s) => (
             <Tooltip
               key={s.name}
-              title={`${s.name}: ${s.pct.toFixed(1)}% (${fmt(s.value)})`}
+              title={`${s.name}: ${s.pct.toFixed(1)}% (${formatBRL(s.value)})`}
               placement="top"
             >
               <path

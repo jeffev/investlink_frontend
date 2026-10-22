@@ -5,6 +5,7 @@ import { Outlet, Navigate } from 'react-router-dom';
 import authService from "../services/auth.service";
 import Login from "../pages/Login.js";
 import ListaAcoes from "../pages/ListaAcoes.js";
+import Oportunidades from "../pages/Oportunidades.js";
 import Favoritas from "../pages/Favoritas.js";
 import ListaFIIs from "../pages/ListaFiis.js";
 import FavoritosFiis from "../pages/FiisFavoritos.js";
@@ -39,6 +40,7 @@ function Rotas() {
 
             <Route path='/' element={<PrivateRoute />}>
                 <Route index element={<Home />} />
+                <Route path="/oportunidades" element={<Oportunidades />} />
                 <Route path="/listaAcoes" element={<ListaAcoes />} />
                 <Route path="/listaFiis" element={<ListaFIIs />} />
                 <Route path="/favoritas" element={<Favoritas />} />

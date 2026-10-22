@@ -1,3 +1,6 @@
+import ScoreChip from '../components/ScoreChip';
+import { numericColumn } from './cells';
+
 export function getFiiColumns(prefix = '', readonly = false) {
   const p = prefix ? `${prefix}.` : '';
 
@@ -39,94 +42,98 @@ export function getFiiColumns(prefix = '', readonly = false) {
       enableColumnActions: false,
     },
     {
-      accessorKey: `${p}price`,
-      header: 'Preço',
-      size: 120,
-      filterVariant: 'range',
+      id: `${p}score_total`,
+      accessorKey: `${p}score_total`,
+      header: 'Score',
+      size: 90,
       enableColumnActions: false,
-      Cell: ({ cell }) =>
-        cell.getValue()?.toLocaleString?.('pt-BR', {
-          style: 'currency',
-          currency: 'BRL',
-        }),
+      // Ordenável no servidor: a listagem faz join com fii_scores. Oferecer a
+      // coluna sem conseguir ordenar por ela seria pior que não oferecer.
+      enableSorting: true,
+      enableColumnFilter: false,
+      Cell: ({ row }) => {
+        const source = prefix ? row.original[prefix] : row.original;
+        if (!source) return '—';
+        return (
+          <ScoreChip
+            score={source.score_total ?? null}
+            pillars={source.score_pillars || []}
+          />
+        );
+      },
     },
-    {
+    numericColumn({
+      accessorKey: `${p}price`,
+      header: 'Cota',
+      kind: 'currency',
+      size: 110,
+    }),
+    numericColumn({
       accessorKey: `${p}dy`,
       header: 'DY',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      kind: 'percent',
+      size: 90,
+    }),
+    numericColumn({
       accessorKey: `${p}p_vp`,
       header: 'P/VP',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      kind: 'ratio',
+      size: 90,
+    }),
+    numericColumn({
       accessorKey: `${p}valorpatrimonialcota`,
-      header: 'Valor Patrimonial Cota',
-      size: 180,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      header: 'Valor patrimonial/cota',
+      kind: 'currency',
+      size: 170,
+    }),
+    numericColumn({
       accessorKey: `${p}liquidezmediadiaria`,
-      header: 'Liquidez Média Diária',
-      size: 180,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      header: 'Liquidez diária',
+      kind: 'compact',
+      size: 130,
+    }),
+    numericColumn({
       accessorKey: `${p}percentualcaixa`,
-      header: '% Caixa',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      header: '% em caixa',
+      kind: 'percent',
+      size: 110,
+    }),
+    numericColumn({
       accessorKey: `${p}dividend_cagr`,
-      header: 'Dividend CAGR',
-      size: 150,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      header: 'CAGR dividendo',
+      kind: 'percent',
+      size: 140,
+    }),
+    numericColumn({
       accessorKey: `${p}cota_cagr`,
-      header: 'Cota CAGR',
-      size: 150,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      header: 'CAGR cota',
+      kind: 'percent',
+      size: 120,
+    }),
+    numericColumn({
       accessorKey: `${p}numerocotistas`,
-      header: 'Número Cotistas',
-      size: 150,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      header: 'Cotistas',
+      kind: 'integer',
+      size: 110,
+    }),
+    numericColumn({
       accessorKey: `${p}numerocotas`,
-      header: 'Número Cotas',
-      size: 150,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      header: 'Cotas emitidas',
+      kind: 'integer',
+      size: 140,
+    }),
+    numericColumn({
       accessorKey: `${p}patrimonio`,
       header: 'Patrimônio',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      kind: 'compact',
+      size: 130,
+    }),
+    numericColumn({
       accessorKey: `${p}lastdividend`,
-      header: 'Último Dividendo',
+      header: 'Último rendimento',
+      kind: 'currency',
       size: 150,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
+    }),
   ];
 
   if (readonly) {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Box,
   Button,
   Card,
   CardContent,
@@ -19,6 +18,7 @@ import StockService from "../services/stock.service";
 import FIIService from "../services/fii.service";
 import UserService from "../services/user.service";
 import { FeedbackSnackbar } from "../components/Common/FeedbackUI";
+import { PageContainer } from "../components/Common/PageLayout";
 
 function MaintenanceCard({ label, onAction, loading }) {
   return (
@@ -85,7 +85,7 @@ const Admin = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: "auto", px: 2, py: 3 }}>
+    <PageContainer width="default">
       <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
         Painel Administrativo
       </Typography>
@@ -156,7 +156,7 @@ const Admin = () => {
       </Card>
 
       <FeedbackSnackbar snackbar={snackbar} onClose={() => setSnackbar(null)} />
-    </Box>
+    </PageContainer>
   );
 };
 

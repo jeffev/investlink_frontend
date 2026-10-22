@@ -1,24 +1,44 @@
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
+import { Link } from 'react-router-dom';
+import { Link as MuiLink, Stack } from '@mui/material';
 
 function Footer() {
-  const theme = useTheme();
-
   return (
     <Box
       component="footer"
       sx={{
-        borderTop: `1px solid ${theme.palette.divider}`,
+        borderTop: 1,
+        borderColor: 'divider',
         py: 2,
         px: 3,
         mt: 'auto',
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: 'background.paper',
       }}
     >
-      <Typography color="primary" align="center">
-        &copy; 2025 Invest Link. All rights reserved.
-      </Typography>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={{ xs: 1, sm: 3 }}
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Typography variant="caption" color="text.secondary">
+          {/* Era "© 2025" fixo, escrito em cor primária como se fosse um link.
+              O ano vem do relógio; o aviso é o que realmente importa aqui. */}
+          © {new Date().getFullYear()} Invest Link
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Conteúdo informativo — não é recomendação de investimento.
+        </Typography>
+        <MuiLink
+          component={Link}
+          to="/guias"
+          variant="caption"
+          color="text.secondary"
+        >
+          Como usar
+        </MuiLink>
+      </Stack>
     </Box>
   );
 }

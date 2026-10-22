@@ -39,7 +39,7 @@ export default function Register() {
       if (response.status === 201) {
         setError('');
         setLoading(false);
-        navigate('/home');
+        navigate('/');
       } else {
         setError(response.data.message);
         setLoading(false);

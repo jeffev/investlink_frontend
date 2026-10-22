@@ -1,8 +1,22 @@
 import ApiService from "./api.service";
 
+// The listing endpoints gained the same pagination envelope as favorites.
+// Unwrapped here rather than in the pages: a personal portfolio never
+// approaches the 200-position page, and the pages already treat these as
+// plain arrays.
+const PAGE_SIZE = 200;
+
+function unwrap(response) {
+  return Array.isArray(response) ? response : response?.data || [];
+}
+
 class PortfolioService extends ApiService {
-  async getPortfolio() {
-    return this.request("get", "portfolio");
+  async getPortfolio(page = 1) {
+    const response = await this.request(
+      "get",
+      `portfolio?page=${page}&per_page=${PAGE_SIZE}`
+    );
+    return unwrap(response);
   }
 
   async getPortfolioSummary() {
@@ -21,8 +35,11 @@ class PortfolioService extends ApiService {
     return this.request("delete", `portfolio/${positionId}`);
   }
 
-  async getFiiPortfolio() {
-    return this.request("get", "portfolio/fii");
+  async getFiiPortfolio(page = 1) {
+    return this.request(
+      "get",
+      `portfolio/fii?page=${page}&per_page=${PAGE_SIZE}`
+    ).then(unwrap);
   }
 
   async addFiiPosition(data) {

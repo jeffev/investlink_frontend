@@ -29,7 +29,10 @@ describe('Autenticação', () => {
     cy.get('button[type="submit"]').click();
 
     cy.wait('@login');
+    // "saiu do /login" não bastava: o destino era `/home`, que não é rota, e
+    // o usuário caía numa página em branco que passava neste teste.
     cy.url().should('not.include', '/login');
+    cy.contains('Dashboard').should('be.visible');
   });
 
   it('login com credenciais inválidas exibe mensagem de erro', () => {
@@ -56,14 +59,16 @@ describe('Autenticação', () => {
   it('logout redireciona para /login', () => {
     cy.setupMocks();
     cy.visitAuthenticated('/');
-    cy.get('button').contains('Logout').click();
+    cy.get('button[aria-label="Conta"]').click();
+    cy.contains('[role="menuitem"]', 'Logout').click();
     cy.url().should('include', '/login');
   });
 
   it('após logout, rota protegida redireciona para /login', () => {
     cy.setupMocks();
     cy.visitAuthenticated('/');
-    cy.get('button').contains('Logout').click();
+    cy.get('button[aria-label="Conta"]').click();
+    cy.contains('[role="menuitem"]', 'Logout').click();
     cy.url().should('include', '/login');
     cy.visit('/listaAcoes');
     cy.url().should('include', '/login');

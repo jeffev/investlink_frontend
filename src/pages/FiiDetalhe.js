@@ -17,15 +17,9 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import FIIService from "../services/fii.service";
-
-function formatValue(value, format) {
-  if (value === null || value === undefined) return "—";
-  if (format === "currency")
-    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  if (format === "percent") return `${Number(value).toFixed(2)}%`;
-  if (format === "number") return Number(value).toFixed(2);
-  return value;
-}
+import { formatBRL, formatValue } from "../utils/formatters";
+import { asList } from "../utils/apiShapes";
+import { PageContainer } from "../components/Common/PageLayout";
 
 const INDICATOR_GROUPS = [
   {
@@ -123,10 +117,7 @@ function FavoriteTargetsCard({ favorite, price }) {
                     color: price <= ceiling_price ? "success.main" : "error.main",
                   }}
                 >
-                  {ceiling_price.toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
+                  {formatBRL(ceiling_price)}
                 </TableCell>
               </TableRow>
             )}
@@ -144,10 +135,7 @@ function FavoriteTargetsCard({ favorite, price }) {
                     color: price <= target_price ? "success.main" : "error.main",
                   }}
                 >
-                  {target_price.toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
+                  {formatBRL(target_price)}
                 </TableCell>
               </TableRow>
             )}
@@ -156,7 +144,7 @@ function FavoriteTargetsCard({ favorite, price }) {
                 Cotação Atual
               </TableCell>
               <TableCell align="right" sx={{ border: 0, pr: 0, fontWeight: 700 }}>
-                {price?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) ?? "—"}
+                {formatBRL(price)}
               </TableCell>
             </TableRow>
           </TableBody>
@@ -182,7 +170,7 @@ const FiiDetalhe = () => {
           FIIService.getFavorites(),
         ]);
         setFii(fiiData);
-        const fav = favoritesData.find(
+        const fav = asList(favoritesData).find(
           (f) => f.fii?.ticker === ticker.toUpperCase()
         );
         setFavorite(fav || null);
@@ -210,7 +198,7 @@ const FiiDetalhe = () => {
     );
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: "auto", px: 2, py: 2 }}>
+    <PageContainer width="default">
       <Button
         startIcon={<ArrowBackIcon />}
         onClick={() => navigate("/listaFiis")}
@@ -274,7 +262,7 @@ const FiiDetalhe = () => {
           />
         ))}
       </Grid>
-    </Box>
+    </PageContainer>
   );
 };
 

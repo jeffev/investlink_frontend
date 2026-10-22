@@ -14,9 +14,28 @@ describe('portfolio.service', () => {
   });
 
   describe('getPortfolio', () => {
-    it('chama request com get e portfolio', async () => {
-      await portfolioService.getPortfolio();
-      expect(portfolioService.request).toHaveBeenCalledWith('get', 'portfolio');
+    it('pede a primeira pagina e devolve a lista sem o envelope', async () => {
+      portfolioService.request.mockResolvedValue({
+        data: [{ ticker: 'PETR4' }],
+        pagination: { total: 1 },
+      });
+
+      const posicoes = await portfolioService.getPortfolio();
+
+      expect(portfolioService.request).toHaveBeenCalledWith(
+        'get',
+        'portfolio?page=1&per_page=200'
+      );
+      // A pagina consome um array; desembrulhar aqui evita que cada tela
+      // precise conhecer o formato da paginacao.
+      expect(posicoes).toEqual([{ ticker: 'PETR4' }]);
+    });
+
+    it('tolera uma resposta que ainda venha como array', async () => {
+      portfolioService.request.mockResolvedValue([{ ticker: 'VALE3' }]);
+      expect(await portfolioService.getPortfolio()).toEqual([
+        { ticker: 'VALE3' },
+      ]);
     });
   });
 

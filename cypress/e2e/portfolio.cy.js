@@ -12,18 +12,25 @@ describe('Portfolio', () => {
     cy.contains('Total Investido').should('be.visible');
   });
 
+  it('separa ações e FIIs em abas', () => {
+    // A aba de FIIs entrou no Sprint D1 e este spec ficou quatro meses
+    // testando um rótulo que a página já não tinha.
+    cy.contains('.MuiTab-root', /Ações \(/).should('be.visible');
+    cy.contains('.MuiTab-root', /FIIs \(/).should('be.visible');
+  });
+
   it('exibe posição PETR4 na tabela', () => {
     cy.contains('PETR4').should('be.visible');
   });
 
-  it('abre modal para adicionar posição', () => {
-    cy.contains(/adicionar posição/i).click();
+  it('abre o modal de nova posição em ação', () => {
+    cy.contains('button', 'Adicionar ação').click();
     cy.get('[role="dialog"]').should('be.visible');
-    cy.get('[role="dialog"]').contains(/adicionar posição/i).should('be.visible');
+    cy.get('[role="dialog"]').contains('Adicionar ação').should('be.visible');
   });
 
-  it('preenche e submete modal de nova posição', () => {
-    cy.contains(/adicionar posição/i).click();
+  it('preenche e submete o modal de nova posição', () => {
+    cy.contains('button', 'Adicionar ação').click();
 
     cy.get('[role="dialog"]').within(() => {
       cy.get('input[name="ticker"]').type('VALE3');
@@ -33,18 +40,18 @@ describe('Portfolio', () => {
     });
 
     cy.wait('@addPosition');
-    cy.contains(/adicionada com sucesso/i).should('be.visible');
+    cy.contains(/Posição adicionada com sucesso/i).should('be.visible');
   });
 
-  it('botão Adicionar fica desabilitado com campos vazios', () => {
-    cy.contains(/adicionar posição/i).click();
+  it('o botão Adicionar fica desabilitado com campos vazios', () => {
+    cy.contains('button', 'Adicionar ação').click();
     cy.get('[role="dialog"]').contains('button', 'Adicionar').should('be.disabled');
   });
 
-  it('remove posição e exibe confirmação de sucesso', () => {
+  it('remove posição e confirma', () => {
     cy.contains('PETR4').should('be.visible');
     cy.get('button.MuiIconButton-colorError').first().click();
     cy.wait('@removePosition');
-    cy.contains(/removida com sucesso/i).should('be.visible');
+    cy.contains(/Posição removida com sucesso/i).should('be.visible');
   });
 });

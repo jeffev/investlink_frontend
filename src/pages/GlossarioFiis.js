@@ -2,7 +2,6 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
-  Box,
   Table,
   TableBody,
   TableCell,
@@ -11,6 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { PageContainer } from "../components/Common/PageLayout";
 
 const SECTIONS = [
   {
@@ -97,7 +97,7 @@ const SECTIONS = [
 
 export default function GlossarioFiis() {
   return (
-    <Box sx={{ py: 3, maxWidth: 900, mx: 'auto' }}>
+    <PageContainer width="narrow">
       <Typography variant="h5" gutterBottom fontWeight={700}>
         Glossário — Lista de FIIs
       </Typography>
@@ -140,6 +140,6 @@ export default function GlossarioFiis() {
           </AccordionDetails>
         </Accordion>
       ))}
-    </Box>
+    </PageContainer>
   );
 }

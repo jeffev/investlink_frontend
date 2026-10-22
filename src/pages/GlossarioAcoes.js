@@ -16,6 +16,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Link } from 'react-router-dom';
 import { alpha } from '@mui/material/styles';
+import { PageContainer } from "../components/Common/PageLayout";
 
 const SECTIONS = [
   {
@@ -73,7 +74,7 @@ const SECTIONS = [
     title: 'Endividamento e Liquidez',
     fields: [
       { col: 'Dívida líquida/Patrimônio', desc: 'Dívida líquida dividida pelo patrimônio líquido. Mede o nível de alavancagem da empresa. Valores altos indicam maior dependência de capital de terceiros.' },
-      { col: 'Dívida líquida/EBITDA', desc: 'Dívida líquida dividida pelo EBITDA. Indica quantos anos de geração de caixa operacional seriam necessários para quitar a dívida líquida.' },
+      { col: 'Dívida Líquida/EBIT', desc: 'Dívida líquida dividida pelo EBIT (lucro operacional). Indica quantos anos de resultado operacional seriam necessários para quitar a dívida líquida. Nulo para bancos, que não separam resultado operacional de financeiro.' },
       { col: 'PL/Ativo', desc: 'Patrimônio Líquido / Ativo Total — proporção do ativo financiada com recursos próprios. Complemento do Passivo/Ativo.' },
       { col: 'Ativo/Passivo', desc: 'Relação entre passivo total e ativo total. Mede a proporção do ativo financiada por dívidas.' },
       { col: 'Liquidez Corrente', desc: 'Ativo circulante / passivo circulante. Acima de 1 indica que a empresa consegue honrar suas obrigações de curto prazo.' },
@@ -140,7 +141,7 @@ const SECTIONS = [
 
 export default function GlossarioAcoes() {
   return (
-    <Box sx={{ py: 3, maxWidth: 900, mx: 'auto' }}>
+    <PageContainer width="narrow">
       <Typography variant="h5" gutterBottom fontWeight={700}>
         Glossário — Lista de Ações
       </Typography>
@@ -194,6 +195,6 @@ export default function GlossarioAcoes() {
           </AccordionDetails>
         </Accordion>
       ))}
-    </Box>
+    </PageContainer>
   );
 }

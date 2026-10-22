@@ -25,7 +25,10 @@ import AddFiiPositionModal from "../components/Portfolio/AddFiiPositionModal";
 import RebalanceTab from "../components/Portfolio/RebalanceTab";
 import ConcentrationTab from "../components/Portfolio/ConcentrationTab";
 import HistoricoTab from "../components/Portfolio/HistoricoTab";
-import { formatCurrency, formatPercent, PnlCell } from "../utils/portfolioFormatters";
+import {
+  getPortfolioFiiColumns,
+  getPortfolioStockColumns,
+} from "../columns/portfolioColumns";
 
 const TABLE_COMMON_OPTIONS = {
   enableEditing: true,
@@ -55,121 +58,8 @@ const Portfolio = () => {
   const [addFiiModalOpen, setAddFiiModalOpen] = useState(false);
   const [snackbar, setSnackbar] = useState(null);
 
-  const stockColumns = useMemo(
-    () => [
-      { accessorKey: "id", header: "ID", size: 60, enableEditing: false, Edit: () => null },
-      { accessorKey: "ticker", header: "Ticker", size: 90, enableEditing: false },
-      { accessorKey: "quantity", header: "Qtd", size: 80, enableEditing: false },
-      {
-        accessorKey: "average_price",
-        header: "Preço Médio",
-        size: 120,
-        enableEditing: true,
-        muiEditTextFieldProps: { type: "number" },
-        Cell: ({ cell }) => formatCurrency(cell.getValue()),
-      },
-      {
-        accessorKey: "current_price",
-        header: "Preço Atual",
-        size: 120,
-        enableEditing: false,
-        Cell: ({ cell }) => formatCurrency(cell.getValue()),
-      },
-      {
-        accessorKey: "total_invested",
-        header: "Total Investido",
-        size: 130,
-        enableEditing: false,
-        Cell: ({ cell }) => formatCurrency(cell.getValue()),
-      },
-      {
-        accessorKey: "current_value",
-        header: "Valor Atual",
-        size: 120,
-        enableEditing: false,
-        Cell: ({ cell }) => formatCurrency(cell.getValue()),
-      },
-      {
-        accessorKey: "pnl",
-        header: "Resultado (R$)",
-        size: 130,
-        enableEditing: false,
-        Cell: ({ cell }) => <PnlCell value={cell.getValue()} formatter={formatCurrency} />,
-      },
-      {
-        accessorKey: "pnl_percent",
-        header: "Rentabilidade (%)",
-        size: 140,
-        enableEditing: false,
-        Cell: ({ cell }) => <PnlCell value={cell.getValue()} formatter={formatPercent} />,
-      },
-    ],
-    []
-  );
-
-  const fiiColumns = useMemo(
-    () => [
-      { accessorKey: "id", header: "ID", size: 60, enableEditing: false, Edit: () => null },
-      { accessorKey: "fii_ticker", header: "Ticker", size: 90, enableEditing: false },
-      { accessorKey: "companyname", header: "Fundo", size: 180, enableEditing: false },
-      { accessorKey: "quantity", header: "Cotas", size: 80, enableEditing: false },
-      {
-        accessorKey: "average_price",
-        header: "Preço Médio",
-        size: 120,
-        enableEditing: true,
-        muiEditTextFieldProps: { type: "number" },
-        Cell: ({ cell }) => formatCurrency(cell.getValue()),
-      },
-      {
-        accessorKey: "current_price",
-        header: "Preço Atual",
-        size: 120,
-        enableEditing: false,
-        Cell: ({ cell }) => formatCurrency(cell.getValue()),
-      },
-      {
-        accessorKey: "total_invested",
-        header: "Total Investido",
-        size: 130,
-        enableEditing: false,
-        Cell: ({ cell }) => formatCurrency(cell.getValue()),
-      },
-      {
-        accessorKey: "current_value",
-        header: "Valor Atual",
-        size: 120,
-        enableEditing: false,
-        Cell: ({ cell }) => formatCurrency(cell.getValue()),
-      },
-      {
-        accessorKey: "pnl",
-        header: "Resultado (R$)",
-        size: 130,
-        enableEditing: false,
-        Cell: ({ cell }) => <PnlCell value={cell.getValue()} formatter={formatCurrency} />,
-      },
-      {
-        accessorKey: "pnl_percent",
-        header: "Rentabilidade (%)",
-        size: 140,
-        enableEditing: false,
-        Cell: ({ cell }) => <PnlCell value={cell.getValue()} formatter={formatPercent} />,
-      },
-      {
-        accessorKey: "monthly_income",
-        header: "Renda Mensal",
-        size: 130,
-        enableEditing: false,
-        Cell: ({ cell }) => (
-          <Box component="span" sx={{ color: "success.main" }}>
-            {formatCurrency(cell.getValue())}
-          </Box>
-        ),
-      },
-    ],
-    []
-  );
+  const stockColumns = useMemo(() => getPortfolioStockColumns(), []);
+  const fiiColumns = useMemo(() => getPortfolioFiiColumns(), []);
 
   const fetchPortfolio = async () => {
     setLoading(true);

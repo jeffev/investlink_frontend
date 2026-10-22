@@ -73,7 +73,7 @@ describe('Register', () => {
     expect(screen.getByRole('button', { name: /criar/i })).toBeInTheDocument();
   });
 
-  it('navega para /home após registro bem-sucedido', async () => {
+  it('navega para a home após registro bem-sucedido', async () => {
     authService.register.mockResolvedValue({ status: 201 });
     render(
       <MemoryRouter>
@@ -88,7 +88,7 @@ describe('Register', () => {
     fireEvent.submit(screen.getByRole('button', { name: /criar/i }).closest('form'));
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/home');
+      expect(mockNavigate).toHaveBeenCalledWith('/');
     });
   });
 

@@ -11,6 +11,7 @@ import {
 import authService from "../services/auth.service";
 import UserService from "../services/user.service";
 import { FeedbackSnackbar } from "../components/Common/FeedbackUI";
+import { PageContainer } from "../components/Common/PageLayout";
 
 function isStrongPassword(pwd) {
   return pwd.length >= 8 && /[A-Z]/.test(pwd) && /\d/.test(pwd);
@@ -64,7 +65,7 @@ const Perfil = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 480, mx: "auto", px: 2, py: 4 }}>
+    <PageContainer width="narrow">
       <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
         Meu Perfil
       </Typography>
@@ -116,7 +117,7 @@ const Perfil = () => {
       </Card>
 
       <FeedbackSnackbar snackbar={snackbar} onClose={() => setSnackbar(null)} />
-    </Box>
+    </PageContainer>
   );
 };
 

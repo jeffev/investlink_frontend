@@ -1,8 +1,11 @@
 import ApiService from "./api.service";
 
 class StockService extends ApiService {
-  async getAllStocks({ page = 1, pageSize = 50, sorting = [], columnFilters = [], search = "" } = {}) {
+  async getAllStocks({ page = 1, pageSize = 50, sorting = [], columnFilters = [], search = "", profile = "" } = {}) {
     const params = new URLSearchParams({ page, per_page: pageSize });
+    if (profile) {
+      params.set("profile", profile);
+    }
     if (sorting.length > 0) {
       params.set("sort_by", sorting[0].id);
       params.set("sort_dir", sorting[0].desc ? "desc" : "asc");
@@ -54,6 +57,40 @@ class StockService extends ApiService {
 
   async getBulkStocks(tickers) {
     return this.request("get", `stocks/bulk?tickers=${tickers.join(",")}`);
+  }
+
+  async getOpportunities(profile, limit = 12, assetType) {
+    const params = new URLSearchParams({ limit });
+    if (profile) params.set("profile", profile);
+    // Sem o parâmetro o backend devolve ações, que é o que a tela pedia antes
+    // de existir vitrine de FII.
+    if (assetType) params.set("asset_type", assetType);
+    return this.request("get", `opportunities?${params.toString()}`);
+  }
+
+  async getScoreBacktest(profile) {
+    const params = profile ? `?profile=${profile}` : "";
+    return this.request("get", `opportunities/backtest${params}`);
+  }
+
+  async getScoreProfiles(assetType) {
+    const params = assetType ? `?asset_type=${assetType}` : "";
+    return this.request("get", `opportunities/profiles${params}`);
+  }
+
+  async getStockScore(ticker, profile) {
+    const params = profile ? `?profile=${profile}` : "";
+    return this.request(
+      "get",
+      `stock/${ticker.toUpperCase()}/score${params}`
+    );
+  }
+
+  async getHistoricalContext(ticker, years = 5) {
+    return this.request(
+      "get",
+      `stock/${ticker.toUpperCase()}/historical-context?years=${years}`
+    );
   }
 }
 

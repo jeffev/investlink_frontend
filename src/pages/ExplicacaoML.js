@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
+import { PageContainer } from "../components/Common/PageLayout";
 
 function SectionTitle({ children }) {
   return (
@@ -65,7 +66,7 @@ const LABEL_ROWS = [
 
 export default function ExplicacaoML() {
   return (
-    <Box sx={{ py: 3, maxWidth: 860, mx: 'auto' }}>
+    <PageContainer width="narrow">
       <Typography variant="h5" fontWeight={700} gutterBottom>
         Como funciona a Análise por Inteligência Artificial
       </Typography>
@@ -216,6 +217,6 @@ export default function ExplicacaoML() {
           Esta ferramenta é uma <strong>tela quantitativa</strong> — deve ser o ponto de partida de uma análise, não a decisão final.
         </Typography>
       </Box>
-    </Box>
+    </PageContainer>
   );
 }

@@ -16,7 +16,9 @@ import {
   Typography,
 } from "@mui/material";
 import StockService from "../services/stock.service";
+import { formatValue as fmt } from "../utils/formatters";
 import MultiPriceChart from "../components/MultiPriceChart";
+import { PageContainer } from "../components/Common/PageLayout";
 
 const MAX_TICKERS = 5;
 
@@ -33,18 +35,10 @@ const INDICATORS = [
   { label: "Dív/PL", key: "dividaliquidapatrimonioliquido", format: "number", better: "min" },
   { label: "CAGR Receita 5a", key: "receitas_cagr5", format: "percent", better: "max" },
   { label: "Preço Graham", key: "graham_formula", format: "currency", better: null },
-  { label: "Desconto Graham", key: "discount_to_graham", format: "percent", better: "max" },
+  // Negative = price below the Graham value = cheap, so lower is better.
+  { label: "Desconto Graham", key: "discount_to_graham", format: "percent", better: "min" },
   { label: "Magic Formula Rank", key: "magic_formula_rank", format: "number", better: "min" },
 ];
-
-function fmt(value, format) {
-  if (value == null || value === undefined) return "—";
-  if (format === "currency")
-    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  if (format === "percent") return `${Number(value).toFixed(2)}%`;
-  if (format === "number") return Number(value).toFixed(2);
-  return value;
-}
 
 function getBestIndex(stocks, key, better) {
   if (better === null) return -1;
@@ -65,6 +59,7 @@ export default function Comparar() {
   const [stocksData, setStocksData] = useState([]);
   const [loadingAll, setLoadingAll] = useState(true);
   const [loadingComparison, setLoadingComparison] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   // Load all tickers for autocomplete
   useEffect(() => {
@@ -123,7 +118,7 @@ export default function Comparar() {
   );
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: "auto", px: 2, py: 2 }}>
+    <PageContainer width="default">
       <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
         Comparar Ativos
       </Typography>
@@ -137,10 +132,15 @@ export default function Comparar() {
               getOptionLabel={(o) => o.label}
               loading={loadingAll}
               disabled={selectedTickers.length >= MAX_TICKERS}
-              onChange={(_, option) => { if (option) addTicker(option.ticker); }}
+              onChange={(_, option) => {
+                if (option) {
+                  addTicker(option.ticker);
+                  setInputValue("");
+                }
+              }}
               value={null}
-              inputValue=""
-              onInputChange={() => {}}
+              inputValue={inputValue}
+              onInputChange={(_, newValue) => setInputValue(newValue)}
               sx={{ minWidth: 280 }}
               renderInput={(params) => (
                 <TextField
@@ -239,6 +239,6 @@ export default function Comparar() {
           </CardContent>
         </Card>
       )}
-    </Box>
+    </PageContainer>
   );
 }

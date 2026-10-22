@@ -79,7 +79,7 @@ describe('Login', () => {
     });
   });
 
-  it('navega para /home após login bem-sucedido', async () => {
+  it('navega para a home após login bem-sucedido', async () => {
     authService.login.mockResolvedValue({ status: 200 });
     render(
       <MemoryRouter>
@@ -92,7 +92,7 @@ describe('Login', () => {
     fireEvent.submit(screen.getByRole('button', { name: /entrar/i }).closest('form'));
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/home');
+      expect(mockNavigate).toHaveBeenCalledWith('/');
     });
   });
 
@@ -136,6 +136,9 @@ describe('Login', () => {
         <Login />
       </MemoryRouter>
     );
-    expect(screen.getByText(/não tem uma conta\? criar/i)).toBeInTheDocument();
+    // O que importa é existir um caminho para o cadastro, não a frase inteira
+    // num nó só — ela é quebrada entre texto e link.
+    const link = screen.getByRole('link', { name: /criar agora/i });
+    expect(link).toHaveAttribute('href', '/registrar');
   });
 });

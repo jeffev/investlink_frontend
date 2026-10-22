@@ -1,4 +1,6 @@
-import { Box, Chip, Tooltip, alpha } from '@mui/material';
+import { Chip, Tooltip, alpha } from '@mui/material';
+import ScoreChip from '../components/ScoreChip';
+import { FORMATTERS, TrendBadge, numericColumn } from './cells';
 
 export function getStockColumns(prefix = '', readonly = false) {
   const p = prefix ? `${prefix}.` : '';
@@ -27,6 +29,39 @@ export function getStockColumns(prefix = '', readonly = false) {
       enableColumnActions: false,
     },
     {
+      accessorKey: `${p}fundamentals_source`,
+      header: 'Fonte do Fundamento',
+      size: 150,
+      filterVariant: 'text',
+      enableColumnActions: false,
+      // CVM means audited trailing twelve months; StatusInvest means the last
+      // closed fiscal year, which in September is nine months old.
+      Cell: ({ cell, row }) => {
+        const source = cell.getValue();
+        if (!source) return '—';
+        const isAudited = source === 'CVM';
+        const date = prefix
+          ? row.original[prefix]?.fundamentals_date
+          : row.original.fundamentals_date;
+        return (
+          <Tooltip
+            title={
+              isAudited
+                ? `Demonstracao auditada da CVM, 12 meses ate ${date || '—'}`
+                : 'Ultimo exercicio fechado, conforme o StatusInvest'
+            }
+          >
+            <Chip
+              label={isAudited ? 'CVM · 12m' : 'StatusInvest'}
+              size="small"
+              color={isAudited ? 'success' : 'default'}
+              variant="outlined"
+            />
+          </Tooltip>
+        );
+      },
+    },
+    {
       accessorKey: `${p}subsectorname`,
       header: 'Subsetor',
       size: 120,
@@ -40,256 +75,224 @@ export function getStockColumns(prefix = '', readonly = false) {
       filterVariant: 'text',
       enableColumnActions: false,
     },
-    {
+    numericColumn({
       accessorKey: `${p}price`,
       header: 'Preço',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-      Cell: ({ cell }) =>
-        cell.getValue()?.toLocaleString?.('pt-BR', {
-          style: 'currency',
-          currency: 'BRL',
-        }),
-    },
+      kind: 'currency',
+      size: 110,
+    }),
     {
-      accessorKey: `${p}roe`,
-      header: 'Roe',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}roa`,
-      header: 'ROA',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}roic`,
-      header: 'ROIC',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}dy`,
-      header: 'DY',
-      size: 100,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}p_vp`,
-      header: 'PVP',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}vpa`,
-      header: 'VPA',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}lpa`,
-      header: 'LPA',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}p_l`,
-      header: 'PL',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}p_ebit`,
-      header: 'P/EBIT',
-      size: 100,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}p_ativo`,
-      header: 'P/Ativo',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}ev_ebit`,
-      header: 'EV/EBIT',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}margembruta`,
-      header: 'Margem Bruta',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}margemebit`,
-      header: 'Margem Ebit',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}margemliquida`,
-      header: 'Margem Líquida',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}p_capitalgiro`,
-      header: 'Capital de giro',
-      size: 100,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}p_ativocirculante`,
-      header: 'Ativo circulante',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}giroativos`,
-      header: 'Giro de ativo',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}dividaliquidapatrimonioliquido`,
-      header: 'Dívida líquida/patrimônio líquido',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}dividaliquidaebit`,
-      header: 'Dívida líquida/EBITDA',
-      size: 100,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}pl_ativo`,
-      header: 'PL/Ativo',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}passivo_ativo`,
-      header: 'Ativo/Passivo',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}liquidezcorrente`,
-      header: 'Liquidez Corrente',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}peg_ratio`,
-      header: 'PEG ratio',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}receitas_cagr5`,
-      header: 'CAGR Receitas 5 anos',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}valormercado`,
-      header: 'Valor Mercado',
-      size: 100,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}graham_formula`,
-      header: 'Fórmula Graham',
-      size: 150,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
-      accessorKey: `${p}discount_to_graham`,
-      header: 'Desconto Fórmula Graham',
+      accessorKey: `${p}queda_do_topo`,
+      header: 'Queda do topo',
       size: 130,
       filterVariant: 'range',
       enableColumnActions: false,
-      Cell: ({ cell }) => {
-        const v = cell.getValue();
-        if (v == null) return null;
-        return (
-          <Box
-            component="span"
-            sx={(theme) => {
-              const base =
-                v < 0
-                  ? theme.palette.success.main
-                  : v < 30
-                  ? theme.palette.warning.main
-                  : theme.palette.error.main;
-              return {
-                backgroundColor: alpha(base, 0.12),
-                border: `1px solid ${alpha(base, 0.35)}`,
-                borderRadius: '0.25rem',
-                color: base,
-                fontWeight: 600,
-                maxWidth: '9ch',
-                p: '0.25rem',
-              };
-            }}
-          >
-            {v.toLocaleString('pt-BR')}%
-          </Box>
-        );
-      },
+      muiTableHeadCellProps: { align: 'right' },
+      muiTableBodyCellProps: { align: 'right' },
+      Cell: ({ cell }) => (
+        <TrendBadge
+          value={cell.getValue()}
+          thresholds={(v) =>
+            v >= -5 ? 'success' : v >= -15 ? 'warning' : 'error'
+          }
+        />
+      ),
+    },
+    numericColumn({
+      accessorKey: `${p}roe`,
+      header: 'ROE',
+      kind: 'percent',
+      size: 100,
+    }),
+    numericColumn({
+      accessorKey: `${p}roa`,
+      header: 'ROA',
+      kind: 'percent',
+      size: 100,
+    }),
+    numericColumn({
+      accessorKey: `${p}roic`,
+      header: 'ROIC',
+      kind: 'percent',
+      size: 100,
+    }),
+    numericColumn({
+      accessorKey: `${p}dy`,
+      header: 'DY',
+      kind: 'percent',
+      size: 90,
+    }),
+    numericColumn({
+      accessorKey: `${p}p_vp`,
+      header: 'P/VP',
+      kind: 'ratio',
+      size: 90,
+    }),
+    numericColumn({
+      accessorKey: `${p}vpa`,
+      header: 'VPA',
+      kind: 'currency',
+      size: 110,
+    }),
+    numericColumn({
+      accessorKey: `${p}lpa`,
+      header: 'LPA',
+      kind: 'currency',
+      size: 110,
+    }),
+    numericColumn({
+      accessorKey: `${p}p_l`,
+      header: 'P/L',
+      kind: 'ratio',
+      size: 90,
+    }),
+    numericColumn({
+      accessorKey: `${p}p_ebit`,
+      header: 'P/EBIT',
+      kind: 'ratio',
+      size: 100,
+    }),
+    numericColumn({
+      accessorKey: `${p}p_ativo`,
+      header: 'P/Ativo',
+      kind: 'ratio',
+      size: 100,
+    }),
+    numericColumn({
+      accessorKey: `${p}ev_ebit`,
+      header: 'EV/EBIT',
+      kind: 'ratio',
+      size: 100,
+    }),
+    numericColumn({
+      accessorKey: `${p}margembruta`,
+      header: 'Margem bruta',
+      kind: 'percent',
+      size: 120,
+    }),
+    numericColumn({
+      accessorKey: `${p}margemebit`,
+      header: 'Margem EBIT',
+      kind: 'percent',
+      size: 120,
+    }),
+    numericColumn({
+      accessorKey: `${p}margemliquida`,
+      header: 'Margem líquida',
+      kind: 'percent',
+      size: 130,
+    }),
+    numericColumn({
+      accessorKey: `${p}p_capitalgiro`,
+      header: 'P/Capital de giro',
+      kind: 'ratio',
+      size: 140,
+    }),
+    numericColumn({
+      accessorKey: `${p}p_ativocirculante`,
+      header: 'P/Ativo circulante',
+      kind: 'ratio',
+      size: 150,
+    }),
+    numericColumn({
+      accessorKey: `${p}giroativos`,
+      header: 'Giro de ativo',
+      kind: 'ratio',
+      size: 120,
+    }),
+    numericColumn({
+      accessorKey: `${p}dividaliquidapatrimonioliquido`,
+      header: 'Dív. líq./PL',
+      kind: 'ratio',
+      size: 120,
+    }),
+    numericColumn({
+      accessorKey: `${p}dividaliquidaebit`,
+      header: 'Dív. líq./EBIT',
+      kind: 'ratio',
+      size: 130,
+    }),
+    numericColumn({
+      accessorKey: `${p}pl_ativo`,
+      header: 'PL/Ativo',
+      kind: 'ratio',
+      size: 100,
+    }),
+    numericColumn({
+      accessorKey: `${p}passivo_ativo`,
+      header: 'Passivo/Ativo',
+      kind: 'ratio',
+      size: 120,
+    }),
+    numericColumn({
+      accessorKey: `${p}liquidezcorrente`,
+      header: 'Liquidez corrente',
+      kind: 'ratio',
+      size: 140,
+    }),
+    numericColumn({
+      accessorKey: `${p}peg_ratio`,
+      header: 'PEG ratio',
+      kind: 'ratio',
+      size: 110,
+    }),
+    numericColumn({
+      accessorKey: `${p}receitas_cagr5`,
+      header: 'CAGR receita 5a',
+      kind: 'percent',
+      size: 130,
+    }),
+    numericColumn({
+      accessorKey: `${p}valormercado`,
+      header: 'Valor de mercado',
+      kind: 'compact',
+      size: 140,
+    }),
+    {
+      accessorKey: `${p}graham_formula`,
+      header: 'Preço-teto de Graham',
+      size: 150,
+      filterVariant: 'range',
+      enableColumnActions: false,
+      muiTableHeadCellProps: { align: 'right' },
+      muiTableBodyCellProps: { align: 'right' },
+      // Null when the formula does not apply (loss, negative equity):
+      // show it as unknown instead of as an empty cell.
+      Cell: ({ cell }) => FORMATTERS.currency(cell.getValue()),
     },
     {
+      accessorKey: `${p}discount_to_graham`,
+      header: 'Desconto vs. Graham',
+      size: 150,
+      filterVariant: 'range',
+      enableColumnActions: false,
+      muiTableHeadCellProps: { align: 'right' },
+      muiTableBodyCellProps: { align: 'right' },
+      Cell: ({ cell }) => (
+        <TrendBadge
+          value={cell.getValue()}
+          thresholds={(v) => (v < 0 ? 'success' : v < 30 ? 'warning' : 'error')}
+        />
+      ),
+    },
+    numericColumn({
       accessorKey: `${p}roic_rank`,
-      header: 'Rank roic',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      header: 'Rank ROIC',
+      kind: 'integer',
+      size: 110,
+    }),
+    numericColumn({
       accessorKey: `${p}ey_rank`,
-      header: 'Earnings rank',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
-    {
+      header: 'Rank earnings yield',
+      kind: 'integer',
+      size: 150,
+    }),
+    numericColumn({
       accessorKey: `${p}magic_formula_rank`,
       header: 'Rank fórmula mágica',
-      size: 120,
-      filterVariant: 'range',
-      enableColumnActions: false,
-    },
+      kind: 'integer',
+      size: 160,
+    }),
     {
       id: `${p}analise_ml`,
       accessorKey: `${p}ml_label`,
@@ -332,16 +335,48 @@ export function getStockColumns(prefix = '', readonly = false) {
       },
     },
     {
+      id: `${p}score_total`,
+      accessorKey: `${p}score_total`,
+      header: 'Score',
+      size: 90,
+      enableColumnActions: false,
+      // Ordenável no servidor: a lista faz join com stock_scores. Oferecer a
+      // coluna sem conseguir ordenar por ela seria pior que não oferecer.
+      enableSorting: true,
+      enableColumnFilter: false,
+      Cell: ({ row }) => {
+        const source = prefix ? row.original[prefix] : row.original;
+        if (!source) return '—';
+        return (
+          <ScoreChip
+            score={source.score_total ?? null}
+            pillars={source.score_pillars || []}
+          />
+        );
+      },
+    },
+    {
       id: `${p}composite_score`,
       accessorKey: `${p}ml_score`,
-      header: 'Score',
-      size: 80,
+      header: 'Score ML',
+      size: 90,
       enableColumnActions: false,
       enableSorting: false,
       enableColumnFilter: false,
       Cell: ({ row }) => {
-        const original = row.original;
-        return prefix ? (original[prefix]?.ml_score ?? null) : (original.ml_score ?? null);
+        const source = prefix ? row.original[prefix] : row.original;
+        if (!source) return '—';
+        return (
+          <ScoreChip
+            score={source.ml_score ?? null}
+            label={source.ml_label ?? null}
+            probabilities={{
+              barata: source.ml_prob_barata,
+              neutra: source.ml_prob_neutra,
+              cara: source.ml_prob_cara,
+            }}
+          />
+        );
       },
     },
   ];

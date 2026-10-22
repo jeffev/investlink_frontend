@@ -7,6 +7,8 @@ import {
 import {
   Box,
   IconButton,
+  MenuItem,
+  TextField,
   Tooltip,
 } from "@mui/material";
 import { MRT_Localization_PT_BR } from "material-react-table/locales/pt-BR";
@@ -37,6 +39,19 @@ const csvConfig = mkConfig({
 
 const savedState = JSON.parse(sessionStorage.getItem("stateListaAcoes")) || {};
 
+// The profile only changes the weights behind the score, never the ranking of
+// a company against its peers. Remembered per session so the advanced table
+// and the opportunities page do not disagree about which profile is in play.
+const PROFILE_STORAGE_KEY = "oportunidadesProfile";
+
+function readStoredProfile() {
+  try {
+    return sessionStorage.getItem(PROFILE_STORAGE_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
 const DEFAULT_COLUMN_VISIBILITY = {
   vpa: false,
   lpa: false,
@@ -61,7 +76,9 @@ const DEFAULT_COLUMN_VISIBILITY = {
   subsectorname: false,
   segmentname: false,
   sectorname: false,
+  fundamentals_source: false,
   graham_formula: false,
+  ml_score: false,
   roic_rank: false,
   ey_rank: false,
 };
@@ -82,6 +99,8 @@ function ListaAcoes() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState(null);
   const [labelFilter, setLabelFilter] = useState(null);
+  const [profile, setProfile] = useState(readStoredProfile());
+  const [profiles, setProfiles] = useState([]);
   const [backtestStrategy, setBacktestStrategy] = useState(null);
   const searchTimeout = useRef(null);
 
@@ -98,6 +117,7 @@ function ListaAcoes() {
         sorting,
         columnFilters,
         search,
+        profile,
       });
       setLista(result.data);
       setRowCount(result.pagination.total);
@@ -106,11 +126,37 @@ function ListaAcoes() {
     } finally {
       setIsFetching(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize, sorting, columnFilters, search]);
+  }, [pagination.pageIndex, pagination.pageSize, sorting, columnFilters, search, profile]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    StockService.getScoreProfiles()
+      .then((response) => {
+        const available = response.data || [];
+        setProfiles(available);
+        setProfile((current) => {
+          if (current && available.some((entry) => entry.key === current)) {
+            return current;
+          }
+          return (available.find((entry) => entry.default) || available[0])?.key || "";
+        });
+      })
+      .catch(() => setProfiles([]));
+  }, []);
+
+  const handleProfile = (event) => {
+    const value = event.target.value;
+    setProfile(value);
+    try {
+      sessionStorage.setItem(PROFILE_STORAGE_KEY, value);
+    } catch {
+      // Remembering the choice is a convenience, never a reason to fail.
+    }
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  };
 
   const handleExportData = () => {
     const csv = generateCsv(csvConfig)(lista);
@@ -285,6 +331,23 @@ function ListaAcoes() {
           { id: 'magic', label: 'Top Magic Formula', color: 'primary' },
         ]}
         extraActions={
+          <>
+            {profiles.length > 0 && (
+              <TextField
+                select
+                size="small"
+                label="Perfil do score"
+                value={profile}
+                onChange={handleProfile}
+                sx={{ minWidth: 190 }}
+              >
+                {profiles.map((entry) => (
+                  <MenuItem key={entry.key} value={entry.key}>
+                    {entry.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
           <StrategyMenu
             assetType="STOCK"
             columnFilters={columnFilters}
@@ -298,6 +361,7 @@ function ListaAcoes() {
             }}
             onBacktest={(strategy) => setBacktestStrategy(strategy)}
           />
+          </>
         }
       />
     ),

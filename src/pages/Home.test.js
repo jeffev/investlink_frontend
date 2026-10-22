@@ -7,11 +7,14 @@ import PortfolioService from '../services/portfolio.service';
 
 jest.mock('../services/stock.service', () => ({
   getFavorites: jest.fn(),
+  getOpportunities: jest.fn(),
   getPredictions: jest.fn(),
   getAlerts: jest.fn(),
 }));
 jest.mock('../services/portfolio.service', () => ({
   getPortfolioSummary: jest.fn(),
+  getProjectedIncome: jest.fn(),
+  getBenchmarks: jest.fn(),
 }));
 
 const renderHome = () =>
@@ -25,6 +28,9 @@ describe('Home', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     StockService.getAlerts.mockResolvedValue([]);
+    StockService.getOpportunities.mockResolvedValue({ data: [] });
+    PortfolioService.getProjectedIncome.mockResolvedValue({ monthly: null });
+    PortfolioService.getBenchmarks.mockResolvedValue(null);
   });
 
   it('renderiza o título Dashboard', async () => {
@@ -135,16 +141,38 @@ describe('Home', () => {
     });
   });
 
-  it('exibe mensagem quando não há previsões disponíveis', async () => {
+  it('esconde o card de ML quando não há previsão nenhuma', async () => {
+    // O banco não tem previsão: o card existia só para anunciar a própria
+    // ausência, ocupando metade do dashboard com "Sem previsões disponíveis".
     StockService.getFavorites.mockResolvedValue([]);
     StockService.getPredictions.mockResolvedValue({ data: [] });
     PortfolioService.getPortfolioSummary.mockResolvedValue({ total_invested: 0 });
 
     renderHome();
 
+    // Espera o carregamento terminar: o card existe enquanto está carregando.
     await waitFor(() => {
-      expect(screen.getByText('Sem previsões disponíveis.')).toBeInTheDocument();
+      expect(screen.queryByText(/Top Picks ML/)).not.toBeInTheDocument();
     });
+  });
+
+  it('mostra as oportunidades do dia no dashboard', async () => {
+    // A vitrine é o produto e não aparecia na primeira tela depois do login.
+    StockService.getFavorites.mockResolvedValue([]);
+    StockService.getPredictions.mockResolvedValue({ data: [] });
+    StockService.getOpportunities.mockResolvedValue({
+      data: [
+        { ticker: 'PETR4', sectorname: 'Petróleo', score: { score_total: 72 } },
+      ],
+    });
+    PortfolioService.getPortfolioSummary.mockResolvedValue({ total_invested: 0 });
+
+    renderHome();
+
+    await waitFor(() => {
+      expect(screen.getByText('PETR4')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Oportunidades de hoje')).toBeInTheDocument();
   });
 
   it('lida com erro no getFavorites sem quebrar', async () => {
@@ -168,6 +196,24 @@ describe('Home', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Top Picks ML (BARATA)')).toBeInTheDocument();
+    });
+  });
+
+  it('renderiza com a resposta paginada de favoritas', async () => {
+    // A API devolve `{ data, pagination }`. Enquanto o mock era array puro, o
+    // teste passava e a `/home` abria **em branco** em produção, porque
+    // `favorites.slice` não existe num objeto.
+    StockService.getFavorites.mockResolvedValue({
+      data: [{ id: 1, stock: { ticker: 'PETR4', companyname: 'Petrobras', price: 38.5 } }],
+      pagination: { page: 1, pages: 1, per_page: 50, total: 1 },
+    });
+    StockService.getPredictions.mockResolvedValue({ data: [] });
+    PortfolioService.getPortfolioSummary.mockResolvedValue({ total_invested: 0 });
+
+    renderHome();
+
+    await waitFor(() => {
+      expect(screen.getByText('PETR4')).toBeInTheDocument();
     });
   });
 });

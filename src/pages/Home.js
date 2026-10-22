@@ -17,17 +17,16 @@ import {
 import StockService from "../services/stock.service";
 import PortfolioService from "../services/portfolio.service";
 import BenchmarkBar from "../components/BenchmarkBar";
+import { formatBRL } from "../utils/formatters";
+import { asList } from "../utils/apiShapes";
+import { PageContainer } from "../components/Common/PageLayout";
+import ScoreMeter from "../components/ScoreMeter";
 
 function getMlChipColor(label) {
   if (label === "BARATA") return "success";
   if (label === "CARA") return "error";
   if (label === "NEUTRA") return "warning";
   return "default";
-}
-
-function formatBRL(value) {
-  if (value == null) return "—";
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function SummaryCard({ label, value, color }) {
@@ -258,12 +257,79 @@ function TopPicksCard({ picks, loading }) {
   );
 }
 
+function OportunidadesCard({ opportunities, loading }) {
+  return (
+    <Card>
+      <CardHeader
+        title="Oportunidades de hoje"
+        subheader="As mais bem pontuadas contra os pares do próprio setor"
+        titleTypographyProps={{ variant: "subtitle1", fontWeight: 700 }}
+        subheaderTypographyProps={{ variant: "caption" }}
+        action={
+          <Button component={Link} to="/oportunidades" size="small">
+            Ver todas
+          </Button>
+        }
+      />
+      <CardContent sx={{ pt: 0 }}>
+        {loading ? (
+          <CircularProgress size={24} />
+        ) : opportunities.length === 0 ? (
+          <Typography color="text.secondary" variant="body2">
+            Nenhuma oportunidade disponível — atualize a base de ações.
+          </Typography>
+        ) : (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+              gap: 2,
+            }}
+          >
+            {opportunities.map((item) => (
+              <Box
+                key={item.ticker}
+                component={Link}
+                to={`/acao/${item.ticker}`}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  p: 1.5,
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 2,
+                  textDecoration: "none",
+                  color: "inherit",
+                  "&:hover": { borderColor: "primary.main" },
+                }}
+              >
+                <ScoreMeter score={item.score?.score_total} size={44} />
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="subtitle2" fontWeight={700} noWrap>
+                    {item.ticker}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" noWrap display="block">
+                    {item.sectorname || item.segment || "—"}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 const Home = () => {
   const [portfolioSummary, setPortfolioSummary] = useState(null);
   const [projectedIncome, setProjectedIncome] = useState(null);
   const [benchmarks, setBenchmarks] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [topPicks, setTopPicks] = useState([]);
+  const [opportunities, setOpportunities] = useState([]);
+  const [loadingOpportunities, setLoadingOpportunities] = useState(true);
   const [alerts, setAlerts] = useState([]);
   const [loadingAlerts, setLoadingAlerts] = useState(true);
   const [loadingPortfolio, setLoadingPortfolio] = useState(true);
@@ -287,7 +353,7 @@ const Home = () => {
       .catch(() => {});
 
     StockService.getFavorites()
-      .then(setFavorites)
+      .then((response) => setFavorites(asList(response)))
       .catch(() => setFavorites([]))
       .finally(() => setLoadingFavorites(false));
 
@@ -295,6 +361,11 @@ const Home = () => {
       .then(setAlerts)
       .catch(() => setAlerts([]))
       .finally(() => setLoadingAlerts(false));
+
+    StockService.getOpportunities(null, 6)
+      .then((response) => setOpportunities(response.data || []))
+      .catch(() => setOpportunities([]))
+      .finally(() => setLoadingOpportunities(false));
 
     StockService.getPredictions()
       .then((data) => {
@@ -312,12 +383,18 @@ const Home = () => {
   void loadingPortfolio;
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: "auto", px: 2, py: 3 }}>
+    <PageContainer width="wide">
       <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
         Dashboard
       </Typography>
 
       <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <OportunidadesCard
+            opportunities={opportunities}
+            loading={loadingOpportunities}
+          />
+        </Grid>
         {(loadingAlerts || alerts.length > 0) && (
           <Grid item xs={12}>
             <AlertasCard alerts={alerts} loading={loadingAlerts} />
@@ -338,11 +415,15 @@ const Home = () => {
         <Grid item xs={12} md={6}>
           <FavoritasCard favorites={favorites} loading={loadingFavorites} />
         </Grid>
+        {/* Sem previsão no banco, o card só dizia "Sem previsões
+            disponíveis" — um card permanente para anunciar ausência. */}
+        {(loadingPicks || topPicks.length > 0) && (
         <Grid item xs={12} md={6}>
           <TopPicksCard picks={topPicks} loading={loadingPicks} />
         </Grid>
+        )}
       </Grid>
-    </Box>
+    </PageContainer>
   );
 };
 
