@@ -1,6 +1,6 @@
 import axios from "axios";
 import UserLayoutService from "./userLayout.service";
-import { API_URL } from "../config/api";
+import { API_URL, HEALTH_URL } from "../config/api";
 
 class AuthService {
   async login(user_name, password) {
@@ -22,6 +22,12 @@ class AuthService {
       console.error("Login error:", error);
       return error.response;
     }
+  }
+
+  // O backend gratuito dorme sem acesso; cutucar a sonda ao abrir o login
+  // adianta a partida enquanto a pessoa ainda está lendo a tela.
+  wakeUpServer() {
+    return axios.get(HEALTH_URL).catch(() => null);
   }
 
   logout() {
