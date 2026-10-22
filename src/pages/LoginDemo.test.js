@@ -16,8 +16,6 @@ jest.mock('../services/auth.service');
 jest.mock('../config/api', () => ({
   API_URL: 'http://api/v1/',
   HEALTH_URL: 'http://api/health',
-  DEMO_USER: 'demo',
-  DEMO_PASSWORD: 'senha-demo',
   IS_DEMO: true,
 }));
 
@@ -35,13 +33,14 @@ describe('Login na demo pública', () => {
   });
 
   it('entra com a conta demo sem digitar nada', async () => {
-    authService.login.mockResolvedValue({ status: 200 });
+    authService.loginAsDemo.mockResolvedValue({ status: 200 });
     renderLogin();
 
     fireEvent.click(screen.getByRole('button', { name: /entrar como visitante/i }));
 
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
-    expect(authService.login).toHaveBeenCalledWith('demo', 'senha-demo');
+    expect(authService.loginAsDemo).toHaveBeenCalled();
+    expect(authService.login).not.toHaveBeenCalled();
   });
 
   it('esconde o convite de cadastro, que está fechado na demo', () => {

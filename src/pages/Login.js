@@ -14,7 +14,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import authService from '../services/auth.service';
 import Logo from '../assets/LOGO.png';
-import { DEMO_PASSWORD, DEMO_USER, IS_DEMO } from '../config/api';
+import { IS_DEMO } from '../config/api';
 
 /**
  * A porta de entrada.
@@ -52,13 +52,13 @@ export default function Login() {
   }, []);
 
   const entrar = useCallback(
-    async (login, password) => {
+    async (abrirSessao) => {
       setLoading(true);
       setIsSlow(false);
       const aviso = setTimeout(() => setIsSlow(true), AVISO_SERVIDOR_DORMINDO_MS);
 
       try {
-        const response = await authService.login(login, password);
+        const response = await abrirSessao();
 
         if (response?.status === 200) {
           setError('');
@@ -89,7 +89,7 @@ export default function Login() {
       setFieldErrors(errors);
       if (errors.login || errors.password) return;
 
-      entrar(login, password);
+      entrar(() => authService.login(login, password));
     },
     [entrar]
   );
@@ -171,7 +171,7 @@ export default function Login() {
             size="large"
             variant="contained"
             disabled={loading}
-            onClick={() => entrar(DEMO_USER, DEMO_PASSWORD)}
+            onClick={() => entrar(() => authService.loginAsDemo())}
             sx={{ mb: 3 }}
           >
             Entrar como visitante

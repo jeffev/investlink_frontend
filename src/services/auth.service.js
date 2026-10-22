@@ -4,11 +4,18 @@ import { API_URL, HEALTH_URL } from "../config/api";
 
 class AuthService {
   async login(user_name, password) {
+    return this.startSession(() =>
+      axios.post(`${API_URL}user/login`, { user_name, password })
+    );
+  }
+
+  async loginAsDemo() {
+    return this.startSession(() => axios.post(`${API_URL}user/demo-login`));
+  }
+
+  async startSession(request) {
     try {
-      const response = await axios.post(`${API_URL}user/login`, {
-        user_name,
-        password,
-      });
+      const response = await request();
       if (response.status === 200) {
         const { access_token, refresh_token, profile, name, user_name } = response.data;
         this.setUserSession({ profile, name, user_name, access_token });
