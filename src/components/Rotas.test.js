@@ -54,5 +54,27 @@ describe('Rotas', () => {
     );
     expect(screen.getByText('Register')).toBeInTheDocument();
   });
+
+  it('avisa que a página não existe em endereço desconhecido', () => {
+    // Sem o curinga, o roteador não casava nada e devolvia tela em branco —
+    // o que um link velho faz parecer site quebrado.
+    authService.isAuthenticated.mockReturnValue(true);
+    render(
+      <MemoryRouter initialEntries={['/acoes']}>
+        <Rotas />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('Esta página não existe')).toBeInTheDocument();
+  });
+
+  it('não exige login para dizer que a página não existe', () => {
+    authService.isAuthenticated.mockReturnValue(false);
+    render(
+      <MemoryRouter initialEntries={['/pagina-que-nunca-existiu']}>
+        <Rotas />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('Esta página não existe')).toBeInTheDocument();
+  });
 });
 

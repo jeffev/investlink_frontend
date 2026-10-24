@@ -85,7 +85,11 @@ class AuthService {
           sessionStorage.removeItem(key);
         }
       } catch (error) {
-        console.error(`Error loading user layout for ${name}:`, error);
+        // Quem nunca salvou um layout recebe 404 nas quatro tabelas. Isso é o
+        // estado normal do primeiro acesso, não um erro a reportar.
+        if (error.response?.status !== 404) {
+          console.error(`Error loading user layout for ${name}:`, error);
+        }
         sessionStorage.removeItem(key);
       }
     }

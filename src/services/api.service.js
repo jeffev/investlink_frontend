@@ -43,7 +43,12 @@ class ApiService {
         AuthService.logout();
         window.location.href = "/login";
       }
-      console.error(`Error with ${method.toUpperCase()} request to ${endpoint}:`, error);
+      // 404 não é falha: é o recurso que ainda não existe, e quem chamou
+      // decide o que fazer com isso. Registrar como erro enchia o console de
+      // vermelho em todo primeiro acesso, escondendo o erro de verdade.
+      if (error.response?.status !== 404) {
+        console.error(`Error with ${method.toUpperCase()} request to ${endpoint}:`, error);
+      }
       throw error;
     }
   }

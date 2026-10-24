@@ -21,6 +21,7 @@ import Comparar from "../pages/Comparar.js";
 import Noticias from "../pages/Noticias.js";
 import Guias from "../pages/Guias.js";
 import GuiaDetalhe from "../pages/GuiaDetalhe.js";
+import NaoEncontrada from "../pages/NaoEncontrada.js";
 
 export const PrivateRoute = () => {
     const isAuthenticated = authService.isAuthenticated();
@@ -60,6 +61,10 @@ function Rotas() {
                     <Route index element={<Admin />} />
                 </Route>
             </Route>
+
+            {/* Sem este curinga, endereço desconhecido não casava com nada e a
+                tela ficava em branco entre o cabeçalho e o rodapé. */}
+            <Route path="*" element={<NaoEncontrada />} />
         </Routes>
     );
 }
