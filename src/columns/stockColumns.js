@@ -34,8 +34,8 @@ export function getStockColumns(prefix = '', readonly = false) {
       size: 150,
       filterVariant: 'text',
       enableColumnActions: false,
-      // CVM means audited trailing twelve months; StatusInvest means the last
-      // closed fiscal year, which in September is nine months old.
+      // CVM é demonstração auditada dos últimos 12 meses; o resto vem de
+      // fonte pública, do último exercício fechado, sem auditoria aqui.
       Cell: ({ cell, row }) => {
         const source = cell.getValue();
         if (!source) return '—';
@@ -48,11 +48,11 @@ export function getStockColumns(prefix = '', readonly = false) {
             title={
               isAudited
                 ? `Demonstracao auditada da CVM, 12 meses ate ${date || '—'}`
-                : 'Ultimo exercicio fechado, conforme o StatusInvest'
+                : 'Fonte pública, último exercício fechado — não auditado nesta base'
             }
           >
             <Chip
-              label={isAudited ? 'CVM · 12m' : 'StatusInvest'}
+              label={isAudited ? 'CVM · 12m' : 'Fonte pública'}
               size="small"
               color={isAudited ? 'success' : 'default'}
               variant="outlined"

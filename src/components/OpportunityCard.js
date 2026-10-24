@@ -15,8 +15,12 @@ import {
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+import { Checkbox, IconButton } from '@mui/material';
 
 import ScoreMeter from './ScoreMeter';
+import CycleBadge from './CycleBadge';
+import ScoreDelta from './ScoreDelta';
 import ScoreBreakdown from './ScoreBreakdown';
 import { scoreBand } from '../utils/score';
 import { formatBRL, formatNumber, formatPercent } from '../utils/formatters';
@@ -115,11 +119,11 @@ function SourceNote({ source, date }) {
       title={
         auditado
           ? `Demonstração auditada da CVM, 12 meses até ${date || '—'}`
-          : 'Último exercício fechado, conforme o StatusInvest'
+          : 'Fonte pública, último exercício fechado — não auditado nesta base'
       }
     >
       <Chip
-        label={auditado ? 'CVM · 12m' : 'StatusInvest'}
+        label={auditado ? 'CVM · 12m' : 'Fonte pública'}
         size="small"
         variant="outlined"
         color={auditado ? 'success' : 'default'}
@@ -154,7 +158,12 @@ function BulletList({ items, icon, color, emptyText }) {
   );
 }
 
-function OpportunityCard({ opportunity, assetType = 'ACAO' }) {
+function OpportunityCard({
+  opportunity,
+  assetType = 'ACAO',
+  selected = false,
+  onToggleCompare,
+}) {
   const { score } = opportunity;
   const [anchorEl, setAnchorEl] = useState(null);
   const isFii = assetType === 'FII';
@@ -193,6 +202,11 @@ function OpportunityCard({ opportunity, assetType = 'ACAO' }) {
             aria-label="Ver composição do score"
           >
             <ScoreMeter score={score?.score_total} />
+            <ScoreDelta
+              delta={opportunity.score_delta}
+              isNew={opportunity.score_is_new}
+              since={opportunity.score_delta_since}
+            />
             {band && (
               <Typography
                 variant="caption"
@@ -217,6 +231,16 @@ function OpportunityCard({ opportunity, assetType = 'ACAO' }) {
         >
           <ScoreBreakdown score={score?.score_total} pillars={score?.pillars || []} />
         </Popover>
+
+        {opportunity.cycle_state && (
+          <Box sx={{ mt: 1.5 }}>
+            <CycleBadge
+              state={opportunity.cycle_state}
+              drawdown={opportunity.queda_12m}
+              message={opportunity.cycle_message}
+            />
+          </Box>
+        )}
 
         <Box
           sx={{
@@ -274,6 +298,24 @@ function OpportunityCard({ opportunity, assetType = 'ACAO' }) {
           gap: 1,
         }}
       >
+        {onToggleCompare && (
+          <Tooltip title={selected ? 'Remover da comparação' : 'Comparar este ativo'}>
+            {/* O comparador existia e ficava desconectado da vitrine: era
+                preciso copiar o ticker na mão para usá-lo. */}
+            <IconButton
+              size="small"
+              color={selected ? 'primary' : 'default'}
+              onClick={() => onToggleCompare(opportunity.ticker)}
+              aria-label={`Comparar ${opportunity.ticker}`}
+            >
+              {selected ? (
+                <Checkbox checked sx={{ p: 0 }} size="small" />
+              ) : (
+                <CompareArrowsIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
+        )}
         <SourceNote
           source={opportunity.fundamentals_source}
           date={opportunity.fundamentals_date}

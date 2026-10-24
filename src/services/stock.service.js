@@ -59,13 +59,25 @@ class StockService extends ApiService {
     return this.request("get", `stocks/bulk?tickers=${tickers.join(",")}`);
   }
 
-  async getOpportunities(profile, limit = 12, assetType) {
+  async getOpportunities(profile, limit = 12, assetType, filters = {}) {
     const params = new URLSearchParams({ limit });
     if (profile) params.set("profile", profile);
     // Sem o parâmetro o backend devolve ações, que é o que a tela pedia antes
     // de existir vitrine de FII.
     if (assetType) params.set("asset_type", assetType);
+
+    // Os filtros vão para o servidor, e não são aplicados na lista recebida:
+    // o recorte já é "os doze melhores", e peneirar o resultado deixaria três
+    // cards em vez de trazer os próximos da fila.
+    if (filters.maxPrice) params.set("max_price", filters.maxPrice);
+    if (filters.onlyDrawdown) params.set("only_drawdown", "true");
+    if (filters.excludePortfolio) params.set("exclude_portfolio", "true");
+
     return this.request("get", `opportunities?${params.toString()}`);
+  }
+
+  async getLastRefresh() {
+    return this.request("get", "jobs/last-refresh");
   }
 
   async getScoreBacktest(profile) {

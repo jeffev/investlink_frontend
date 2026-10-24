@@ -9,6 +9,7 @@ jest.mock('../services/stock.service', () => ({
   getOpportunities: jest.fn(),
   getScoreProfiles: jest.fn(),
   getScoreBacktest: jest.fn(),
+  getLastRefresh: jest.fn(),
 }));
 
 const renderPage = () =>
@@ -58,6 +59,10 @@ describe('Oportunidades', () => {
     sessionStorage.clear();
     StockService.getScoreProfiles.mockResolvedValue(profiles);
     StockService.getScoreBacktest.mockResolvedValue({ years: [], caveats: [] });
+    StockService.getLastRefresh.mockResolvedValue({
+      status: 'OK',
+      started_at: new Date().toISOString(),
+    });
   });
 
   it('renderiza o título da página', async () => {
@@ -122,7 +127,8 @@ describe('Oportunidades', () => {
       expect(StockService.getOpportunities).toHaveBeenCalledWith(
         'DIVIDENDOS',
         12,
-        'ACAO'
+        'ACAO',
+        expect.any(Object)
       );
     });
   });
@@ -213,7 +219,8 @@ describe('Oportunidades', () => {
         expect(StockService.getOpportunities).toHaveBeenCalledWith(
           'EQUILIBRADO',
           12,
-          'FII'
+          'FII',
+          expect.any(Object)
         );
       });
     });
@@ -280,6 +287,112 @@ describe('Oportunidades', () => {
 
       // Continua em uma: a troca para FII não disparou outra medição.
       expect(StockService.getScoreBacktest).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('momento do ciclo e filtros', () => {
+    const comCiclo = (overrides = {}) => ({
+      ...opportunity(),
+      queda_12m: -41.6,
+      cycle_state: 'OPORTUNIDADE_DE_CICLO',
+      cycle_message: 'Caiu 42% do topo de 12 meses e o lucro segue crescendo',
+      ...overrides,
+    });
+
+    it('mostra a tarja de queda com fundamento de pé', async () => {
+      // O score responde "é bom?"; a tarja responde "é hora?".
+      StockService.getOpportunities.mockResolvedValue({ data: [comCiclo()] });
+
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText(/caiu 42% do topo/i)).toBeInTheDocument();
+      });
+    });
+
+    it('avisa quando o ativo está no topo do próprio ciclo', async () => {
+      StockService.getOpportunities.mockResolvedValue({
+        data: [
+          comCiclo({
+            queda_12m: -1.2,
+            cycle_state: 'PERTO_DO_TOPO',
+            cycle_message: 'Perto da máxima de 12 meses',
+          }),
+        ],
+      });
+
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText(/no topo de 12 meses/i)).toBeInTheDocument();
+      });
+    });
+
+    it('separa queda com deterioração de queda com desconto', async () => {
+      // Queda grande sozinha seleciona ativo quebrado, não pechincha.
+      StockService.getOpportunities.mockResolvedValue({
+        data: [
+          comCiclo({
+            cycle_state: 'QUEDA_COM_DETERIORACAO',
+            cycle_message: 'Caiu 32% mas o lucro caiu junto',
+          }),
+        ],
+      });
+
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText(/queda com deterioração/i)).toBeInTheDocument();
+      });
+    });
+
+    it('o filtro de queda vai para o servidor, não para a lista recebida', async () => {
+      // Peneirar os doze cards recebidos deixaria três; o recorte precisa
+      // acontecer na consulta.
+      StockService.getOpportunities.mockResolvedValue({ data: [] });
+
+      renderPage();
+      await waitFor(() => {
+        expect(screen.getByLabelText(/só quem caiu do topo/i)).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByLabelText(/só quem caiu do topo/i));
+
+      await waitFor(() => {
+        expect(StockService.getOpportunities).toHaveBeenLastCalledWith(
+          expect.anything(),
+          12,
+          'ACAO',
+          expect.objectContaining({ onlyDrawdown: true })
+        );
+      });
+    });
+
+    it('mostra de quando é o dado na tela', async () => {
+      StockService.getOpportunities.mockResolvedValue({ data: [] });
+
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText(/atualizado/i)).toBeInTheDocument();
+      });
+    });
+
+    it('leva os selecionados para o comparador', async () => {
+      StockService.getOpportunities.mockResolvedValue({
+        data: [comCiclo(), comCiclo({ ticker: 'VALE3' })],
+      });
+
+      renderPage();
+      await waitFor(() => {
+        expect(screen.getByText('VALE3')).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByLabelText('Comparar POMO4'));
+      await userEvent.click(screen.getByLabelText('Comparar VALE3'));
+
+      const botao = screen.getByRole('link', { name: /comparar 2/i });
+      expect(botao).toHaveAttribute('href', '/comparar?tickers=POMO4,VALE3');
     });
   });
 });
